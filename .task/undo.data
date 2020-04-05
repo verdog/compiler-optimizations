@@ -1,0 +1,45 @@
+time 1586108726
+new [description:"write report" entry:"1586108726" modified:"1586108726" status:"pending" uuid:"0a33a1ab-a3f0-449c-b288-4bb536977080"]
+---
+time 1586108746
+new [description:"estimate spill costs" entry:"1586108746" modified:"1586108746" status:"pending" uuid:"fcd5c5bf-ca6c-4018-993c-bd1d3988eea4"]
+---
+time 1586108754
+new [description:"k-coloring : 12\/16" entry:"1586108754" modified:"1586108754" status:"pending" uuid:"0d90c88a-892a-452e-ab47-1b020d814da9"]
+---
+time 1586108761
+new [description:"k-coloring : 8\/12" entry:"1586108761" modified:"1586108761" status:"pending" uuid:"c7aa2b1d-983e-4fd3-9dd6-37a8c0475fdc"]
+---
+time 1586108768
+new [description:"construct interference graph" entry:"1586108768" modified:"1586108768" status:"pending" uuid:"5727eb20-b41b-485a-9702-d8e3dd67e885"]
+---
+time 1586108778
+new [description:"interference graph class" entry:"1586108778" modified:"1586108778" status:"pending" uuid:"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"]
+---
+time 1586108782
+new [description:"compute live ranges" entry:"1586108782" modified:"1586108782" status:"pending" uuid:"bc4f3237-a77c-4ab2-9947-b7e369f7c094"]
+---
+time 1586108805
+old [description:"write report" entry:"1586108726" modified:"1586108726" status:"pending" uuid:"0a33a1ab-a3f0-449c-b288-4bb536977080"]
+new [depends:"0d90c88a-892a-452e-ab47-1b020d814da9,c7aa2b1d-983e-4fd3-9dd6-37a8c0475fdc" description:"write report" entry:"1586108726" modified:"1586108805" status:"pending" uuid:"0a33a1ab-a3f0-449c-b288-4bb536977080"]
+---
+time 1586108829
+old [description:"k-coloring : 12\/16" entry:"1586108754" modified:"1586108754" status:"pending" uuid:"0d90c88a-892a-452e-ab47-1b020d814da9"]
+new [depends:"5727eb20-b41b-485a-9702-d8e3dd67e885" description:"k-coloring : 12\/16" entry:"1586108754" modified:"1586108829" status:"pending" uuid:"0d90c88a-892a-452e-ab47-1b020d814da9"]
+---
+time 1586108829
+old [description:"k-coloring : 8\/12" entry:"1586108761" modified:"1586108761" status:"pending" uuid:"c7aa2b1d-983e-4fd3-9dd6-37a8c0475fdc"]
+new [depends:"5727eb20-b41b-485a-9702-d8e3dd67e885" description:"k-coloring : 8\/12" entry:"1586108761" modified:"1586108829" status:"pending" uuid:"c7aa2b1d-983e-4fd3-9dd6-37a8c0475fdc"]
+---
+time 1586108859
+old [description:"construct interference graph" entry:"1586108768" modified:"1586108768" status:"pending" uuid:"5727eb20-b41b-485a-9702-d8e3dd67e885"]
+new [depends:"bc4f3237-a77c-4ab2-9947-b7e369f7c094,15e65ae1-6b6d-47ac-a8db-4ae745d920a7" description:"construct interference graph" entry:"1586108768" modified:"1586108859" status:"pending" uuid:"5727eb20-b41b-485a-9702-d8e3dd67e885"]
+---
+time 1586108887
+old [depends:"5727eb20-b41b-485a-9702-d8e3dd67e885" description:"k-coloring : 12\/16" entry:"1586108754" modified:"1586108829" status:"pending" uuid:"0d90c88a-892a-452e-ab47-1b020d814da9"]
+new [depends:"5727eb20-b41b-485a-9702-d8e3dd67e885,fcd5c5bf-ca6c-4018-993c-bd1d3988eea4" description:"k-coloring : 12\/16" entry:"1586108754" modified:"1586108887" status:"pending" uuid:"0d90c88a-892a-452e-ab47-1b020d814da9"]
+---
+time 1586108887
+old [depends:"5727eb20-b41b-485a-9702-d8e3dd67e885" description:"k-coloring : 8\/12" entry:"1586108761" modified:"1586108829" status:"pending" uuid:"c7aa2b1d-983e-4fd3-9dd6-37a8c0475fdc"]
+new [depends:"5727eb20-b41b-485a-9702-d8e3dd67e885,fcd5c5bf-ca6c-4018-993c-bd1d3988eea4" description:"k-coloring : 8\/12" entry:"1586108761" modified:"1586108887" status:"pending" uuid:"c7aa2b1d-983e-4fd3-9dd6-37a8c0475fdc"]
+---

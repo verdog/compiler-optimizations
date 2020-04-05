@@ -1,0 +1,13 @@
+{"description":"write report","entry":"20200405T174526Z","modified":"20200405T174526Z","status":"pending","uuid":"0a33a1ab-a3f0-449c-b288-4bb536977080"}
+{"description":"estimate spill costs","entry":"20200405T174546Z","modified":"20200405T174546Z","status":"pending","uuid":"fcd5c5bf-ca6c-4018-993c-bd1d3988eea4"}
+{"description":"k-coloring : 12\/16","entry":"20200405T174554Z","modified":"20200405T174554Z","status":"pending","uuid":"0d90c88a-892a-452e-ab47-1b020d814da9"}
+{"description":"k-coloring : 8\/12","entry":"20200405T174601Z","modified":"20200405T174601Z","status":"pending","uuid":"c7aa2b1d-983e-4fd3-9dd6-37a8c0475fdc"}
+{"description":"construct interference graph","entry":"20200405T174608Z","modified":"20200405T174608Z","status":"pending","uuid":"5727eb20-b41b-485a-9702-d8e3dd67e885"}
+{"description":"interference graph class","entry":"20200405T174618Z","modified":"20200405T174618Z","status":"pending","uuid":"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"}
+{"description":"compute live ranges","entry":"20200405T174622Z","modified":"20200405T174622Z","status":"pending","uuid":"bc4f3237-a77c-4ab2-9947-b7e369f7c094"}
+{"depends":"0d90c88a-892a-452e-ab47-1b020d814da9,c7aa2b1d-983e-4fd3-9dd6-37a8c0475fdc","description":"write report","entry":"20200405T174526Z","modified":"20200405T174645Z","status":"pending","uuid":"0a33a1ab-a3f0-449c-b288-4bb536977080"}
+{"depends":"5727eb20-b41b-485a-9702-d8e3dd67e885","description":"k-coloring : 12\/16","entry":"20200405T174554Z","modified":"20200405T174709Z","status":"pending","uuid":"0d90c88a-892a-452e-ab47-1b020d814da9"}
+{"depends":"5727eb20-b41b-485a-9702-d8e3dd67e885","description":"k-coloring : 8\/12","entry":"20200405T174601Z","modified":"20200405T174709Z","status":"pending","uuid":"c7aa2b1d-983e-4fd3-9dd6-37a8c0475fdc"}
+{"depends":"bc4f3237-a77c-4ab2-9947-b7e369f7c094,15e65ae1-6b6d-47ac-a8db-4ae745d920a7","description":"construct interference graph","entry":"20200405T174608Z","modified":"20200405T174739Z","status":"pending","uuid":"5727eb20-b41b-485a-9702-d8e3dd67e885"}
+{"depends":"5727eb20-b41b-485a-9702-d8e3dd67e885,fcd5c5bf-ca6c-4018-993c-bd1d3988eea4","description":"k-coloring : 12\/16","entry":"20200405T174554Z","modified":"20200405T174807Z","status":"pending","uuid":"0d90c88a-892a-452e-ab47-1b020d814da9"}
+{"depends":"5727eb20-b41b-485a-9702-d8e3dd67e885,fcd5c5bf-ca6c-4018-993c-bd1d3988eea4","description":"k-coloring : 8\/12","entry":"20200405T174601Z","modified":"20200405T174807Z","status":"pending","uuid":"c7aa2b1d-983e-4fd3-9dd6-37a8c0475fdc"}
