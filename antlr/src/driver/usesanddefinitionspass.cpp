@@ -2,6 +2,8 @@
 
 IlocProgram UsesAndDefinitionsPass::applyToProgram(IlocProgram prog) {
   for (auto &proc : prog.getProceduresReference()) {
+    proc.getSSAInfoReference().definitionsMap.clear();
+    proc.getSSAInfoReference().usesMap.clear();
     calculateSSAInfo(proc);
   }
 
@@ -19,11 +21,11 @@ void UsesAndDefinitionsPass::calculateSSAInfo(IlocProcedure &proc) {
   Value vr0 = Value("%vr0", Value::Type::virtualReg, Value::Behavior::memory);
   vr0.setSubscript("0");
   Value vr1 = Value("%vr1", Value::Type::virtualReg, Value::Behavior::memory);
-  vr1.setSubscript("1");
+  vr1.setSubscript("0");
   Value vr2 = Value("%vr2", Value::Type::virtualReg, Value::Behavior::memory);
-  vr2.setSubscript("2");
+  vr2.setSubscript("0");
   Value vr3 = Value("%vr3", Value::Type::virtualReg, Value::Behavior::memory);
-  vr3.setSubscript("3");
+  vr3.setSubscript("0");
 
   defMap.insert({vr0, std::make_shared<PredefinedValueOccurance>(
                           vr0, proc.getBlock("entry"))});
@@ -46,6 +48,11 @@ void UsesAndDefinitionsPass::calculateSSAInfo(IlocProcedure &proc) {
 
     // instructions
     for (auto inst : block.instructions) {
+      // skip deleted
+      if (inst.isDeleted()) {
+        continue;
+      }
+
       // uses
       for (auto rval : inst.operation.rvalues) {
         if (rval.getType() == Value::Type::virtualReg) {
@@ -68,6 +75,11 @@ void UsesAndDefinitionsPass::calculateSSAInfo(IlocProcedure &proc) {
 
     // phi nodes
     for (auto phi : block.phinodes) {
+      // skip deleted
+      if (phi.isDeleted()) {
+        continue;
+      }
+
       // uses
       for (auto pair : phi.getRValueMap()) {
         Value rval = pair.second;

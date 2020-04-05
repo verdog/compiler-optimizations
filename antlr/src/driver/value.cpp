@@ -25,3 +25,7 @@ bool operator==(const Value &a, const Value &b) {
 }
 
 bool operator!=(const Value &a, const Value &b) { return !(a == b); }
+
+bool operator<(const Value &a, const Value &b) {
+  return a.getFullText() < b.getFullText();
+}

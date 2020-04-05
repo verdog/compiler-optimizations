@@ -52,3 +52,4 @@ template <> struct hash<Value> {
 
 bool operator==(const Value &a, const Value &b);
 bool operator!=(const Value &a, const Value &b);
+bool operator<(const Value &a, const Value &b);
