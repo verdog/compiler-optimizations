@@ -1,0 +1,17 @@
+*.class
+*.swp
+.vscode/
+antlr/src/parser/*.cpp
+antlr/src/parser/*.h
+antlr/src/parser/*.o
+antlr/src/parser/*.a
+antlr/src/parser/libantlr
+antlr/src/parser/.antlr
+antlr/driver.o/
+.d/
+.o/
+antlr/driver
+antlr/output.il
+antlr/lib/antlr4-runtime/libantlr4-runtime.a
+output/
+*.pdf
