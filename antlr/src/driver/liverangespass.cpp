@@ -1,5 +1,6 @@
 #include <algorithm>
 
+#include "interferencegraph.h"
 #include "liverangespass.h"
 #include "livevariableanalysispass.h"
 #include "usesanddefinitionspass.h"
@@ -42,7 +43,12 @@ IlocProgram LiveRangesPass::applyToProgram(IlocProgram prog) {
   _rangesMap.clear();
 
   for (auto proc : prog.getProcedures()) {
-    computeLiveRanges(proc);
+    _rangesMap.insert({proc, computeLiveRanges(proc)});
+  }
+
+  for (auto pair : _rangesMap) {
+    InterferenceGraph igraph;
+    igraph.createFromLiveRangesSet(pair.second);
   }
 
   return prog;

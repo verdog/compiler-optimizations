@@ -18,3 +18,8 @@
 {"description":"compute live range sets","end":"20200405T192905Z","entry":"20200405T192649Z","modified":"20200405T192905Z","status":"completed","uuid":"9fe1c176-5c6e-432b-b2c6-fe79f2e0d038"}
 {"description":"compute live range distances","end":"20200405T194125Z","entry":"20200405T192658Z","modified":"20200405T194130Z","status":"deleted","uuid":"1b919b60-0e74-4e83-a7a5-bf6c60eb8ba5"}
 {"depends":"9fe1c176-5c6e-432b-b2c6-fe79f2e0d038,1b919b60-0e74-4e83-a7a5-bf6c60eb8ba5","description":"compute live ranges","end":"20200405T194207Z","entry":"20200405T174622Z","modified":"20200405T194207Z","status":"completed","uuid":"bc4f3237-a77c-4ab2-9947-b7e369f7c094"}
+{"description":"interference graph class","entry":"20200405T174618Z","modified":"20200406T195709Z","start":"20200406T195709Z","status":"pending","uuid":"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"}
+{"description":"interference graph class","entry":"20200405T174618Z","modified":"20200406T195717Z","status":"pending","uuid":"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"}
+{"description":"interference graph class","entry":"20200405T174618Z","modified":"20200406T195721Z","start":"20200406T195721Z","status":"pending","uuid":"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"}
+{"description":"interference graph class","entry":"20200405T174618Z","modified":"20200406T195733Z","status":"pending","uuid":"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"}
+{"description":"interference graph class","entry":"20200405T174618Z","modified":"20200406T200804Z","start":"20200406T200804Z","status":"pending","uuid":"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"}

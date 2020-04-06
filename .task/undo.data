@@ -69,3 +69,23 @@ time 1586115727
 old [depends:"9fe1c176-5c6e-432b-b2c6-fe79f2e0d038,1b919b60-0e74-4e83-a7a5-bf6c60eb8ba5" description:"compute live ranges" entry:"1586108782" modified:"1586114830" status:"pending" uuid:"bc4f3237-a77c-4ab2-9947-b7e369f7c094"]
 new [depends:"9fe1c176-5c6e-432b-b2c6-fe79f2e0d038,1b919b60-0e74-4e83-a7a5-bf6c60eb8ba5" description:"compute live ranges" end:"1586115727" entry:"1586108782" modified:"1586115727" status:"completed" uuid:"bc4f3237-a77c-4ab2-9947-b7e369f7c094"]
 ---
+time 1586203029
+old [description:"interference graph class" entry:"1586108778" modified:"1586108778" status:"pending" uuid:"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"]
+new [description:"interference graph class" entry:"1586108778" modified:"1586203029" start:"1586203029" status:"pending" uuid:"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"]
+---
+time 1586203037
+old [description:"interference graph class" entry:"1586108778" modified:"1586203029" start:"1586203029" status:"pending" uuid:"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"]
+new [description:"interference graph class" entry:"1586108778" modified:"1586203037" status:"pending" uuid:"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"]
+---
+time 1586203041
+old [description:"interference graph class" entry:"1586108778" modified:"1586203037" status:"pending" uuid:"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"]
+new [description:"interference graph class" entry:"1586108778" modified:"1586203041" start:"1586203041" status:"pending" uuid:"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"]
+---
+time 1586203053
+old [description:"interference graph class" entry:"1586108778" modified:"1586203041" start:"1586203041" status:"pending" uuid:"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"]
+new [description:"interference graph class" entry:"1586108778" modified:"1586203053" status:"pending" uuid:"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"]
+---
+time 1586203684
+old [description:"interference graph class" entry:"1586108778" modified:"1586203053" status:"pending" uuid:"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"]
+new [description:"interference graph class" entry:"1586108778" modified:"1586203684" start:"1586203684" status:"pending" uuid:"15e65ae1-6b6d-47ac-a8db-4ae745d920a7"]
+---
