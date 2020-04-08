@@ -18,9 +18,15 @@ int InterferenceGraphNode::getDegree() { return edges.size(); }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void InterferenceGraph::createFromLiveRangesSet(std::set<LiveRange> set,
-                                                IlocProcedure proc) {
-  test();
+void InterferenceGraph::createFromLiveRangesSet(
+    std::set<LiveRange> set, IlocProcedure proc,
+    LiveVariableAnalysisPass lvapass) {
+
+  _graphMap.clear();
+
+  for (auto lr : set) {
+    addNode(lr.name);
+  }
 }
 
 void InterferenceGraph::addNode(InterferenceGraphNode node) {
@@ -70,7 +76,7 @@ void InterferenceGraph::test() {
     std::cerr << "uh oh, no error was thrown upon inserting duplicate node.\n";
   } catch (...) {
     std::cerr << "an error occured upon insterting a duplicate node, as it "
-                 "should had.\n";
+                 "should have.\n";
   }
 
   // connect a to b
@@ -114,4 +120,10 @@ void InterferenceGraph::test() {
   // get d
   std::cerr << "node d has " << getNode("d").edges.size()
             << " edges. (should be 0)\n";
+}
+
+void InterferenceGraph::dump() {
+  for (auto pair : _graphMap) {
+    std::cerr << pair.first << ": " << pair.second.name << std::endl;
+  }
 }

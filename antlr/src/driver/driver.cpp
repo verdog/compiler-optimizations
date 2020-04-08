@@ -9,10 +9,10 @@
 #include "deadcodeeliminationpass.h"
 #include "ilocprogram.h"
 #include "ilocprogramvisitor.h"
-#include "liverangespass.h"
 #include "lvnpass.h"
 #include "normalformpass.h"
 #include "optrenamepass.h"
+#include "registerallocationpass.h"
 #include "registerbehaviorpass.h"
 #include "removedeletedpass.h"
 #include "ssapass.h"
@@ -61,7 +61,7 @@ int main(int argc, const char *argv[]) {
   RemoveDeletedPass remdelpass;
   DeadCodeEliminationPass deadcodepass;
   NormalFormPass normpass;
-  LiveRangesPass liverangepass;
+  RegisterAllocationPass regallocpass;
 
   program = regpass.applyToProgram(program);
   program = lvnpass.applyToProgram(program);
@@ -69,7 +69,7 @@ int main(int argc, const char *argv[]) {
   // program = optpass.applyToProgram(program);
   program = deadcodepass.applyToProgram(program);
   // program = normpass.applyToProgram(program);
-  program = liverangepass.applyToProgram(program);
+  program = regallocpass.applyToProgram(program);
 
   emitter.emitDebug(program);
   emitter.emit(program);

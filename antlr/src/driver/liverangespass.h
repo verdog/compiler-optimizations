@@ -27,7 +27,6 @@ public:
   std::set<LiveRange> getLiveRange(IlocProcedure proc);
 
 private:
-  void calculateSpillCosts();
   std::set<LiveRange> computeLiveRanges(IlocProcedure proc);
 
   std::unordered_map<IlocProcedure, std::set<LiveRange>> _rangesMap;

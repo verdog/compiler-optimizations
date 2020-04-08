@@ -5,6 +5,7 @@
 #include <string>
 
 #include "liverangespass.h"
+#include "livevariableanalysispass.h"
 
 enum InteferenceGraphColor { red, orange, yellow, green, blue, indigo, violet };
 
@@ -24,7 +25,8 @@ bool operator<(const InterferenceGraphNode &a, const InterferenceGraphNode &b);
 
 class InterferenceGraph {
 public:
-  void createFromLiveRangesSet(std::set<LiveRange> set, IlocProcedure proc);
+  void createFromLiveRangesSet(std::set<LiveRange> set, IlocProcedure proc,
+                               LiveVariableAnalysisPass lvapass);
 
   void addNode(InterferenceGraphNode node);
   InterferenceGraphNode getNode(std::string name);
@@ -33,6 +35,7 @@ public:
   void disconnectNodes(InterferenceGraphNode a, InterferenceGraphNode b);
 
   void test();
+  void dump();
 
 private:
   std::map<std::string, InterferenceGraphNode> _graphMap;

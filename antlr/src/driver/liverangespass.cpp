@@ -32,21 +32,11 @@ IlocProgram LiveRangesPass::applyToProgram(IlocProgram prog) {
   }
 
   UsesAndDefinitionsPass udpass;
-  udpass.applyToProgram(prog);
-
-  LiveVariableAnalysisPass lvapass;
-  lvapass.applyToProgram(prog);
-
-  // debug output
-  lvapass.dump();
+  prog = udpass.applyToProgram(prog);
 
   for (auto proc : prog.getProcedures()) {
     _rangesMap.clear();
     _rangesMap.insert({proc, computeLiveRanges(proc)});
-    for (auto pair : _rangesMap) {
-      InterferenceGraph igraph;
-      igraph.createFromLiveRangesSet(pair.second, proc);
-    }
   }
 
   return prog;
@@ -71,6 +61,9 @@ std::set<LiveRange> LiveRangesPass::computeLiveRanges(IlocProcedure proc) {
   // create live ranges from phi nodes
   for (auto block : proc.orderedBlocks()) {
     for (auto phi : block.phinodes) {
+      if (phi.isDeleted())
+        continue;
+
       // get live range associated with lvalue
       LiveRange range =
           *std::find_if(rangesSet.begin(), rangesSet.end(), [&](LiveRange l) {
@@ -100,9 +93,6 @@ std::set<LiveRange> LiveRangesPass::computeLiveRanges(IlocProcedure proc) {
     }
   }
 
-  // calculate spill costs for each live range
-  calculateSpillCosts();
-
   // debug output
   for (auto lr : rangesSet) {
     std::cerr << "found " << lr.name << std::endl;
@@ -115,5 +105,3 @@ std::set<LiveRange> LiveRangesPass::computeLiveRanges(IlocProcedure proc) {
 
   return rangesSet;
 }
-
-void LiveRangesPass::calculateSpillCosts() { todo }
