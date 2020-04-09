@@ -9,7 +9,7 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
   prog = lrpass.applyToProgram(prog);
 
   LiveVariableAnalysisPass lvapass;
-  lvapass.applyToProgram(prog);
+  prog = lvapass.applyToProgram(prog);
 
   for (auto &proc : prog.getProceduresReference()) {
     InterferenceGraph igraph;

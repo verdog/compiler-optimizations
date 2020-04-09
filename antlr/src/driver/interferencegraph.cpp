@@ -29,8 +29,42 @@ void InterferenceGraph::createFromLiveRangesSet(
     addNode(lr.name);
   }
 
+  // to provide getRangeWithValue()
+  LiveRangesPass lrutil;
+
   for (auto block : proc.orderedBlocks()) {
-    // std::unordered_set<Value> live = lvapass.getBlockSets(proc, block).out;
+    std::unordered_set<Value> live = lvapass.getBlockSets(proc, block).out;
+
+    for (auto it = block.instructions.rbegin(); it != block.instructions.rend();
+         it++) {
+      Instruction inst = *it;
+
+      // skip deleted
+      if (inst.isDeleted())
+        continue;
+
+      // lvalue interferes with anything in live
+      if (inst.operation.lvalues.size() == 1 and
+          inst.operation.lvalues.front().getType() == Value::Type::virtualReg) {
+
+        Value lval = inst.operation.lvalues.front();
+        LiveRange lvalLiveRange = lrutil.getRangeWithValue(lval, set);
+
+        for (auto value : live) {
+          connectNodes(lrutil.getRangeWithValue(value, set).name,
+                       lvalLiveRange.name);
+        }
+
+        live.erase(lval);
+      }
+
+      // add rvalues to live
+      for (auto rval : inst.operation.rvalues) {
+        if (rval.getType() == Value::Type::virtualReg) {
+          live.insert(rval);
+        }
+      }
+    }
   }
 }
 
@@ -57,12 +91,18 @@ void InterferenceGraph::removeNode(InterferenceGraphNode node) {
 
 void InterferenceGraph::connectNodes(InterferenceGraphNode a,
                                      InterferenceGraphNode b) {
+  if (a.name == b.name)
+    return;
+
   _graphMap.at(a.name).edges.insert(b);
   _graphMap.at(b.name).edges.insert(a);
 }
 
 void InterferenceGraph::disconnectNodes(InterferenceGraphNode a,
                                         InterferenceGraphNode b) {
+  if (a.name == b.name)
+    return;
+
   _graphMap.at(a.name).edges.erase(b);
   _graphMap.at(b.name).edges.erase(a);
 }
@@ -129,6 +169,10 @@ void InterferenceGraph::test() {
 
 void InterferenceGraph::dump() {
   for (auto pair : _graphMap) {
-    std::cerr << pair.first << ": " << pair.second.name << std::endl;
+    std::cerr << pair.first << " (" << pair.second.spillCost
+              << "): " << std::endl;
+    for (auto edge : pair.second.edges) {
+      std::cerr << "   " << edge.name << std::endl;
+    }
   }
 }
