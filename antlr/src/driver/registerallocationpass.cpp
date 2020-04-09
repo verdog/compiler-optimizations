@@ -6,7 +6,7 @@
 
 IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
   LiveRangesPass lrpass;
-  lrpass.applyToProgram(prog);
+  prog = lrpass.applyToProgram(prog);
 
   LiveVariableAnalysisPass lvapass;
   lvapass.applyToProgram(prog);

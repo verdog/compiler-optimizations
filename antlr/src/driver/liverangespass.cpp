@@ -34,8 +34,9 @@ IlocProgram LiveRangesPass::applyToProgram(IlocProgram prog) {
   UsesAndDefinitionsPass udpass;
   prog = udpass.applyToProgram(prog);
 
+  _rangesMap.clear();
+
   for (auto proc : prog.getProcedures()) {
-    _rangesMap.clear();
     _rangesMap.insert({proc, computeLiveRanges(proc)});
   }
 
