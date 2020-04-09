@@ -31,6 +31,7 @@ void InterferenceGraph::createFromLiveRanges(LiveRangesPass lrpass,
     addNode(lr.name);
   }
 
+  // connect nodes
   for (auto block : proc.orderedBlocks()) {
     std::unordered_set<Value> live = lvapass.getBlockSets(proc, block).out;
 
@@ -63,6 +64,31 @@ void InterferenceGraph::createFromLiveRanges(LiveRangesPass lrpass,
           live.insert(rval);
         }
       }
+    }
+  }
+
+  // calculate spill costs
+  for (auto &pair : _graphMap) {
+    InterferenceGraphNode &node = pair.second;
+    LiveRange lr = lrpass.getRangeWithName(node.name, set);
+
+    // get number of uses for live range
+    unsigned int uses = 0;
+    for (auto val : lr.registers) {
+      if (proc.getSSAInfo().usesMap.find(val) !=
+          proc.getSSAInfo().usesMap.end()) {
+        uses += proc.getSSAInfo().usesMap.at(val).size();
+      } else {
+        // no uses. can happen with special registers.
+      }
+    }
+
+    if (node.edges.size() > 0) {
+      node.spillCost =
+          static_cast<float>(uses) / static_cast<float>(node.edges.size());
+    } else {
+      // no edges, very high spill cost
+      node.spillCost = 100;
     }
   }
 }

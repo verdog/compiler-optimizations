@@ -15,7 +15,7 @@ struct InterferenceGraphNode {
   int getDegree();
   std::string name;
   std::set<InterferenceGraphNode> edges;
-  int spillCost;
+  float spillCost;
 };
 
 bool operator==(const InterferenceGraphNode &a, const InterferenceGraphNode &b);

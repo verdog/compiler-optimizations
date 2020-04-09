@@ -118,3 +118,14 @@ LiveRange LiveRangesPass::getRangeWithValue(Value val,
     return false;
   });
 }
+
+LiveRange LiveRangesPass::getRangeWithName(std::string name,
+                                           std::set<LiveRange> rangesSet) {
+  return *std::find_if(rangesSet.begin(), rangesSet.end(), [&](LiveRange l) {
+    for (auto innerValue : l.registers) {
+      if (innerValue.getFullText() == name)
+        return true;
+    }
+    return false;
+  });
+}

@@ -26,6 +26,7 @@ public:
   IlocProgram applyToProgram(IlocProgram prog);
   std::set<LiveRange> getLiveRanges(IlocProcedure proc);
   LiveRange getRangeWithValue(Value val, std::set<LiveRange> rangesSet);
+  LiveRange getRangeWithName(std::string name, std::set<LiveRange> rangesSet);
 
 private:
   std::set<LiveRange> computeLiveRanges(IlocProcedure proc);
