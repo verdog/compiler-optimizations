@@ -18,19 +18,18 @@ int InterferenceGraphNode::getDegree() { return edges.size(); }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void InterferenceGraph::createFromLiveRangesSet(
-    std::set<LiveRange> set, IlocProcedure proc,
-    LiveVariableAnalysisPass lvapass) {
+void InterferenceGraph::createFromLiveRanges(LiveRangesPass lrpass,
+                                             IlocProcedure proc,
+                                             LiveVariableAnalysisPass lvapass) {
 
   _graphMap.clear();
+
+  std::set<LiveRange> set = lrpass.getLiveRanges(proc);
 
   // initialize nodes
   for (auto lr : set) {
     addNode(lr.name);
   }
-
-  // to provide getRangeWithValue()
-  LiveRangesPass lrutil;
 
   for (auto block : proc.orderedBlocks()) {
     std::unordered_set<Value> live = lvapass.getBlockSets(proc, block).out;
@@ -48,10 +47,10 @@ void InterferenceGraph::createFromLiveRangesSet(
           inst.operation.lvalues.front().getType() == Value::Type::virtualReg) {
 
         Value lval = inst.operation.lvalues.front();
-        LiveRange lvalLiveRange = lrutil.getRangeWithValue(lval, set);
+        LiveRange lvalLiveRange = lrpass.getRangeWithValue(lval, set);
 
         for (auto value : live) {
-          connectNodes(lrutil.getRangeWithValue(value, set).name,
+          connectNodes(lrpass.getRangeWithValue(value, set).name,
                        lvalLiveRange.name);
         }
 

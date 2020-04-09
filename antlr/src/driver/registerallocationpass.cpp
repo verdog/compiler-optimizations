@@ -15,7 +15,7 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
     InterferenceGraph igraph;
 
     // create interference graph
-    igraph.createFromLiveRangesSet(lrpass.getLiveRanges(proc), proc, lvapass);
+    igraph.createFromLiveRanges(lrpass, proc, lvapass);
 
     igraph.dump();
 

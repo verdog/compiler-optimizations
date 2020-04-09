@@ -25,8 +25,8 @@ bool operator<(const InterferenceGraphNode &a, const InterferenceGraphNode &b);
 
 class InterferenceGraph {
 public:
-  void createFromLiveRangesSet(std::set<LiveRange> set, IlocProcedure proc,
-                               LiveVariableAnalysisPass lvapass);
+  void createFromLiveRanges(LiveRangesPass lrpass, IlocProcedure proc,
+                            LiveVariableAnalysisPass lvapass);
 
   void addNode(InterferenceGraphNode node);
   InterferenceGraphNode getNode(std::string name);
