@@ -1,27 +1,27 @@
     .text
     .frame main, 0
-    loadI 1 => %vr1
-    loadI 2 => %vr2
-    comp %vr1, %vr2 => %vr3
-    iwrite %vr3
+    loadI 1 => %vr10
+    loadI 2 => %vr20
+    comp %vr10, %vr20 => %vr30
+    iwrite %vr30
 
-    loadI 1 => %vr1
+    loadI 1 => %vr10
     loadI 20 => %vr4
-    comp %vr1, %vr4 => %vr6
+    comp %vr10, %vr4 => %vr6
     iwrite %vr6
 
-    loadI 2 => %vr2
-    loadI 2 => %vr2
-    comp %vr2, %vr2 => %vr7
+    loadI 2 => %vr20
+    loadI 2 => %vr20
+    comp %vr20, %vr20 => %vr7
     iwrite %vr7
 
-    loadI 2 => %vr2
-    loadI 1 => %vr1
-    comp %vr2, %vr1 => %vr8
+    loadI 2 => %vr20
+    loadI 1 => %vr10
+    comp %vr20, %vr10 => %vr8
     iwrite %vr8
 
     loadI 20 => %vr4
-    loadI 1 => %vr1
-    comp %vr4, %vr1 => %vr9
+    loadI 1 => %vr10
+    comp %vr4, %vr10 => %vr9
     iwrite %vr9
     ret

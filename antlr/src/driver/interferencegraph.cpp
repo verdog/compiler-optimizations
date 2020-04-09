@@ -30,7 +30,7 @@ void InterferenceGraph::createFromLiveRangesSet(
   }
 
   for (auto block : proc.orderedBlocks()) {
-    std::unordered_set<Value> live = lvapass.getBlockSets(proc, block).out;
+    // std::unordered_set<Value> live = lvapass.getBlockSets(proc, block).out;
   }
 }
 

@@ -36,10 +36,11 @@ if [ $# -eq 0 ] ; then
     printf "\n"
 
   done
-  # clean up
-  rm original.txt optimized.txt
 else
   # just one
   echo running on $1
   run_on_file $1
 fi
+
+# clean up
+rm original.txt optimized.txt output.il
