@@ -42,7 +42,7 @@ IlocProgram LiveRangesPass::applyToProgram(IlocProgram prog) {
   return prog;
 }
 
-std::set<LiveRange> LiveRangesPass::getLiveRange(IlocProcedure proc) {
+std::set<LiveRange> LiveRangesPass::getLiveRanges(IlocProcedure proc) {
   if (_rangesMap.find(proc) == _rangesMap.end()) {
     computeLiveRanges(proc);
   }
@@ -65,28 +65,29 @@ std::set<LiveRange> LiveRangesPass::computeLiveRanges(IlocProcedure proc) {
         continue;
 
       // get live range associated with lvalue
-      LiveRange range =
-          *std::find_if(rangesSet.begin(), rangesSet.end(), [&](LiveRange l) {
-            return l.name == phi.getLValue().getFullText();
-          });
+      LiveRange range = getRangeWithValue(phi.getLValue(), rangesSet);
 
-      // remove it for modification
+      // create a set of ranges that we will merge with the lvalue range
+      std::set<LiveRange> toMerge;
+
+      // save rvalues to merge set
+      for (auto pair : phi.getRValueMap()) {
+        // add rvalue live range to merge set
+        Value rval = pair.second;
+        LiveRange rvalRange = getRangeWithValue(rval, rangesSet);
+        toMerge.insert(rvalRange);
+      }
+
+      // erase ranges in toMerge from master set
+      for (auto mergingRange : toMerge) {
+        rangesSet.erase(mergingRange);
+      }
+
+      // remove range before modification
       rangesSet.erase(range);
 
-      // merge with rvalues
-      for (auto pair : phi.getRValueMap()) {
-        Value rval = pair.second;
-
-        LiveRange rvalRange =
-            *std::find_if(rangesSet.begin(), rangesSet.end(), [&](LiveRange l) {
-              return l.name == rval.getFullText();
-            });
-
-        range.assimilateRanges({rvalRange});
-
-        // remove from set
-        rangesSet.erase(rvalRange);
-      }
+      // merge
+      range.assimilateRanges(toMerge);
 
       // save
       rangesSet.insert(range);
@@ -104,4 +105,15 @@ std::set<LiveRange> LiveRangesPass::computeLiveRanges(IlocProcedure proc) {
   }
 
   return rangesSet;
+}
+
+LiveRange LiveRangesPass::getRangeWithValue(Value val,
+                                            std::set<LiveRange> rangesSet) {
+  return *std::find_if(rangesSet.begin(), rangesSet.end(), [&](LiveRange l) {
+    for (auto innerValue : l.registers) {
+      if (innerValue.getFullText() == val.getFullText())
+        return true;
+    }
+    return false;
+  });
 }

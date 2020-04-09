@@ -24,8 +24,13 @@ void InterferenceGraph::createFromLiveRangesSet(
 
   _graphMap.clear();
 
+  // initialize nodes
   for (auto lr : set) {
     addNode(lr.name);
+  }
+
+  for (auto block : proc.orderedBlocks()) {
+    std::unordered_set<Value> live = lvapass.getBlockSets(proc, block).out;
   }
 }
 

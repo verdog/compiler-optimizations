@@ -6,10 +6,10 @@
 #include "value.h"
 
 struct DataFlowSets {
-  std::unordered_set<Value, ValueNameHash, ValueNameEqual> in;
-  std::unordered_set<Value, ValueNameHash, ValueNameEqual> gen;
-  std::unordered_set<Value, ValueNameHash, ValueNameEqual> not_prsv;
-  std::unordered_set<Value, ValueNameHash, ValueNameEqual> out;
+  std::unordered_set<Value> in;
+  std::unordered_set<Value> gen;
+  std::unordered_set<Value> not_prsv;
+  std::unordered_set<Value> out;
 };
 
 class LiveVariableAnalysisPass : public Pass {

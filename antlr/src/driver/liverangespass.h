@@ -24,7 +24,8 @@ template <> struct hash<LiveRange> {
 class LiveRangesPass : public Pass {
 public:
   IlocProgram applyToProgram(IlocProgram prog);
-  std::set<LiveRange> getLiveRange(IlocProcedure proc);
+  std::set<LiveRange> getLiveRanges(IlocProcedure proc);
+  LiveRange getRangeWithValue(Value val, std::set<LiveRange> rangesSet);
 
 private:
   std::set<LiveRange> computeLiveRanges(IlocProcedure proc);

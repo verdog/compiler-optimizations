@@ -11,6 +11,9 @@ OptRenamePass::OptRenamePass()
     : PDTreePass(DominatorTreePass::Mode::postdominator) {}
 
 IlocProgram OptRenamePass::applyToProgram(IlocProgram prog) {
+
+  throw "this pass is outdated and probably doesn't work any more.\n";
+
   LiveVariableAnalysisPass LVApass;
   LVApass.applyToProgram(prog);
   DTreePass.applyToProgram(prog);
