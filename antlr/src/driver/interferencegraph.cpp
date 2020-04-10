@@ -9,12 +9,20 @@ bool operator<(const InterferenceGraphNode &a, const InterferenceGraphNode &b) {
   return a.name < b.name;
 }
 
-InterferenceGraphNode::InterferenceGraphNode() : spillCost{0} {}
+InterferenceGraphNode::InterferenceGraphNode() : uses{0} {}
 
 InterferenceGraphNode::InterferenceGraphNode(std::string _name)
-    : spillCost{0}, name{_name} {}
+    : uses{0}, name{_name} {}
 
 int InterferenceGraphNode::getDegree() { return edges.size(); }
+
+float InterferenceGraphNode::getSpillCost() {
+  if (getDegree() > 0) {
+    return static_cast<float>(uses) / static_cast<float>(getDegree());
+  } else {
+    return 1000.0;
+  }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -67,7 +75,7 @@ void InterferenceGraph::createFromLiveRanges(LiveRangesPass lrpass,
     }
   }
 
-  // calculate spill costs
+  // record number of uses for spill costs
   for (auto &pair : _graphMap) {
     InterferenceGraphNode &node = pair.second;
     LiveRange lr = lrpass.getRangeWithName(node.name, set);
@@ -83,13 +91,7 @@ void InterferenceGraph::createFromLiveRanges(LiveRangesPass lrpass,
       }
     }
 
-    if (node.edges.size() > 0) {
-      node.spillCost =
-          static_cast<float>(uses) / static_cast<float>(node.edges.size());
-    } else {
-      // no edges, very high spill cost
-      node.spillCost = 100;
-    }
+    node.uses = uses;
   }
 }
 
@@ -240,7 +242,7 @@ void InterferenceGraph::test() {
 
 void InterferenceGraph::dump() {
   for (auto pair : _graphMap) {
-    std::cerr << pair.first << " (" << pair.second.spillCost
+    std::cerr << pair.first << " (" << pair.second.getSpillCost()
               << "): " << std::endl;
     for (auto edge : pair.second.edges) {
       std::cerr << "   " << edge.name << std::endl;
