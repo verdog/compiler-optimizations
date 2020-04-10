@@ -99,6 +99,11 @@ void InterferenceGraph::addNode(InterferenceGraphNode node) {
   }
 
   _graphMap.insert({node.name, node});
+
+  // connect any saved edges
+  for (auto edge : node.edges) {
+    connectNodes(node, edge);
+  }
 }
 
 InterferenceGraphNode InterferenceGraph::getNode(std::string name) {
@@ -112,6 +117,11 @@ void InterferenceGraph::removeNode(InterferenceGraphNode node) {
   }
 
   _graphMap.erase(node.name);
+
+  // remove any edges that now point to nothing
+  for (auto edge : node.edges) {
+    disconnectNodes(node, edge);
+  }
 }
 
 void InterferenceGraph::connectNodes(InterferenceGraphNode a,
@@ -190,6 +200,42 @@ void InterferenceGraph::test() {
   // get d
   std::cerr << "node d has " << getNode("d").edges.size()
             << " edges. (should be 0)\n";
+
+  _graphMap.clear();
+
+  // test removing nodes with edges and re-adding them
+  std::string a = "a";
+  std::string b = "b";
+  std::string c = "c";
+
+  addNode(a);
+  addNode(b);
+  addNode(c);
+
+  connectNodes(a, b);
+  connectNodes(b, c);
+
+  std::cerr << "node b has " << getNode("b").edges.size()
+            << " edges. (should be 2)\n";
+
+  InterferenceGraphNode bNode = getNode("b");
+  removeNode(b);
+
+  std::cerr << "node a has " << getNode("a").edges.size()
+            << " edges. (should be 0)\n";
+
+  std::cerr << "node c has " << getNode("c").edges.size()
+            << " edges. (should be 0)\n";
+
+  addNode(bNode);
+  std::cerr << "node a has " << getNode("a").edges.size()
+            << " edges. (should be 1)\n";
+
+  std::cerr << "node b has " << getNode("b").edges.size()
+            << " edges. (should be 2)\n";
+
+  std::cerr << "node c has " << getNode("c").edges.size()
+            << " edges. (should be 1)\n";
 }
 
 void InterferenceGraph::dump() {
