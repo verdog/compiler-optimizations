@@ -17,10 +17,38 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
     // create interference graph
     igraph.createFromLiveRanges(lrpass, proc, lvapass);
 
-    igraph.dump();
-
     // process graph
+    colorGraph(igraph, 6);
+
+    igraph.dump();
   }
 
   return prog;
+}
+
+void RegisterAllocationPass::colorGraph(InterferenceGraph &igraph,
+                                        unsigned int k) {
+  std::stack<InterferenceGraphNode> stack;
+
+  // fill up stack
+  while (igraph.empty() == false) {
+    InterferenceGraphNode cheapestNode;
+
+    if (igraph.minDegree() < k) {
+      cheapestNode = igraph.getAnyNodeWithDegree(igraph.minDegree());
+    } else {
+      cheapestNode = igraph.getLowestSpillcostNode();
+    }
+
+    igraph.removeNode(cheapestNode);
+    stack.push(cheapestNode);
+  }
+
+  // try to color
+  while (stack.empty() == false) {
+    InterferenceGraphNode node = stack.top();
+    stack.pop();
+    igraph.addNode(node);
+    igraph.colorNode(node, k);
+  }
 }

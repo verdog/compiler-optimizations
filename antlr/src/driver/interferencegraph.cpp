@@ -9,10 +9,11 @@ bool operator<(const InterferenceGraphNode &a, const InterferenceGraphNode &b) {
   return a.name < b.name;
 }
 
-InterferenceGraphNode::InterferenceGraphNode() : uses{0} {}
+InterferenceGraphNode::InterferenceGraphNode()
+    : color(InterferenceGraphColor::uncolored), uses{0} {}
 
 InterferenceGraphNode::InterferenceGraphNode(std::string _name)
-    : uses{0}, name{_name} {}
+    : color(InterferenceGraphColor::uncolored), uses{0}, name{_name} {}
 
 int InterferenceGraphNode::getDegree() { return edges.size(); }
 
@@ -100,11 +101,16 @@ void InterferenceGraph::addNode(InterferenceGraphNode node) {
     throw "tried to add a node that was already in the graph.\n";
   }
 
+  auto savedEdges = node.edges;
+  node.edges.clear();
+
   _graphMap.insert({node.name, node});
 
   // connect any saved edges
-  for (auto edge : node.edges) {
-    connectNodes(node, edge);
+  for (auto edge : savedEdges) {
+    if (_graphMap.find(edge.name) != _graphMap.end()) {
+      connectNodes(node, edge);
+    }
   }
 }
 
@@ -118,12 +124,12 @@ void InterferenceGraph::removeNode(InterferenceGraphNode node) {
     _graphMap.at(edge.name).edges.erase(node);
   }
 
-  _graphMap.erase(node.name);
-
   // remove any edges that now point to nothing
   for (auto edge : node.edges) {
     disconnectNodes(node, edge);
   }
+
+  _graphMap.erase(node.name);
 }
 
 void InterferenceGraph::connectNodes(InterferenceGraphNode a,
@@ -142,6 +148,59 @@ void InterferenceGraph::disconnectNodes(InterferenceGraphNode a,
 
   _graphMap.at(a.name).edges.erase(b);
   _graphMap.at(b.name).edges.erase(a);
+}
+
+bool InterferenceGraph::empty() { return _graphMap.empty(); }
+
+bool InterferenceGraph::colorNode(InterferenceGraphNode nodeCopy,
+                                  unsigned int max) {
+  std::set<InterferenceGraphColor> notAvailable{
+      InterferenceGraphColor::uncolored, InterferenceGraphColor::vr0,
+      InterferenceGraphColor::vr1,       InterferenceGraphColor::vr2,
+      InterferenceGraphColor::vr3,
+  };
+
+  max -= 1; // passed in as "number of available registers", but register colors
+            // start at 0
+
+  InterferenceGraphNode &node = _graphMap.at(nodeCopy.name);
+
+  // handle special nodes
+  if (node.name == "%vr0_0") {
+    node.color = InterferenceGraphColor::vr0;
+    return true;
+  } else if (node.name == "%vr1_0") {
+    node.color = InterferenceGraphColor::vr1;
+    return true;
+  } else if (node.name == "%vr2_0") {
+    node.color = InterferenceGraphColor::vr2;
+    return true;
+  } else if (node.name == "%vr3_0") {
+    node.color = InterferenceGraphColor::vr3;
+    return true;
+  }
+
+  // eliminate available colors
+  for (auto edge : node.edges) {
+    notAvailable.insert(_graphMap.at(edge.name).color);
+  }
+
+  // find lowest available color
+  // start at 4 because colors 0-3 correspond to special registers and are never
+  // available
+  for (unsigned int i = 4; i <= max; i++) {
+    InterferenceGraphColor color = static_cast<InterferenceGraphColor>(i);
+
+    if (notAvailable.find(color) == notAvailable.end()) {
+      // found an available color
+      node.color = color;
+      return true;
+    }
+  }
+
+  // couldn't find a color
+  node.color = InterferenceGraphColor::uncolored;
+  return false;
 }
 
 void InterferenceGraph::test() {
@@ -243,9 +302,57 @@ void InterferenceGraph::test() {
 void InterferenceGraph::dump() {
   for (auto pair : _graphMap) {
     std::cerr << pair.first << " (" << pair.second.getSpillCost()
-              << "): " << std::endl;
+              << ") (color: " << pair.second.color << "): " << std::endl;
     for (auto edge : pair.second.edges) {
       std::cerr << "   " << edge.name << std::endl;
     }
   }
+}
+
+unsigned int InterferenceGraph::minDegree() {
+  unsigned int min = UINT32_MAX;
+  for (auto pair : _graphMap) {
+    min = pair.second.getDegree() < min ? pair.second.getDegree() : min;
+  }
+  return min;
+}
+
+unsigned int InterferenceGraph::maxDegree() {
+  unsigned int max = 0;
+  for (auto pair : _graphMap) {
+    max = pair.second.getDegree() > max ? pair.second.getDegree() : max;
+  }
+  return max;
+}
+
+InterferenceGraphNode
+InterferenceGraph::getAnyNodeWithDegree(unsigned int degree) {
+  for (auto pair : _graphMap) {
+    if (pair.second.getDegree() == degree) {
+      return pair.second;
+    }
+  }
+
+  throw "couldn't find a node with that degree.";
+}
+
+InterferenceGraphNode InterferenceGraph::getLowestSpillcostNode() {
+  InterferenceGraphNode cheap;
+  float cheapestCost;
+  bool first = true;
+
+  for (auto pair : _graphMap) {
+    if (first == true) {
+      cheapestCost = pair.second.getSpillCost();
+      cheap = pair.second;
+      first == false;
+    } else {
+      if (pair.second.getSpillCost() < cheapestCost) {
+        cheapestCost = pair.second.getSpillCost();
+        cheap = pair.second;
+      }
+    }
+  }
+
+  return cheap;
 }

@@ -7,7 +7,20 @@
 #include "liverangespass.h"
 #include "livevariableanalysispass.h"
 
-enum InteferenceGraphColor { red, orange, yellow, green, blue, indigo, violet };
+enum InterferenceGraphColor {
+  uncolored = -1,
+  vr0,
+  vr1,
+  vr2,
+  vr3,
+  red,
+  orange,
+  yellow,
+  green,
+  blue,
+  indigo,
+  violet,
+};
 
 struct InterferenceGraphNode {
   InterferenceGraphNode();
@@ -15,10 +28,10 @@ struct InterferenceGraphNode {
   int getDegree();
   float getSpillCost();
 
-  unsigned int uses;
-
   std::string name;
+  unsigned int uses;
   std::set<InterferenceGraphNode> edges;
+  InterferenceGraphColor color;
 };
 
 bool operator==(const InterferenceGraphNode &a, const InterferenceGraphNode &b);
@@ -36,6 +49,12 @@ public:
   void removeNode(InterferenceGraphNode node);
   void connectNodes(InterferenceGraphNode a, InterferenceGraphNode b);
   void disconnectNodes(InterferenceGraphNode a, InterferenceGraphNode b);
+  bool empty();
+  unsigned int minDegree();
+  unsigned int maxDegree();
+  InterferenceGraphNode getAnyNodeWithDegree(unsigned int degree);
+  InterferenceGraphNode getLowestSpillcostNode();
+  bool colorNode(InterferenceGraphNode node, unsigned int max);
 
   void test();
   void dump();
