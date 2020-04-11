@@ -14,12 +14,18 @@ enum InterferenceGraphColor {
   vr2,
   vr3,
   red,
+  red_orange,
   orange,
+  orange_yellow,
   yellow,
+  yellow_green,
   green,
+  green_blue,
   blue,
   indigo,
   violet,
+  white,
+  black
 };
 
 struct InterferenceGraphNode {
