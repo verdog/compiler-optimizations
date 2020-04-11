@@ -96,10 +96,12 @@ std::string CodeEmitter::debugText(const Instruction &inst) const {
     spacer = ", ";
   }
 
+  spacer = " ";
   if (inst.operation.lvalues.size() > 0) {
     text += " " + inst.operation.arrow;
     for (auto v : inst.operation.lvalues) {
-      text += " " + v.getFullText();
+      text += spacer + v.getFullText();
+      spacer = ", ";
     }
   }
 
