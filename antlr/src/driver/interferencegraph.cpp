@@ -27,75 +27,6 @@ float InterferenceGraphNode::getSpillCost() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void InterferenceGraph::createFromLiveRanges(LiveRangesPass lrpass,
-                                             IlocProcedure proc,
-                                             LiveVariableAnalysisPass lvapass) {
-
-  _graphMap.clear();
-
-  std::set<LiveRange> set = lrpass.getLiveRanges(proc);
-
-  // initialize nodes
-  for (auto lr : set) {
-    addNode(lr.name);
-  }
-
-  // connect nodes
-  for (auto block : proc.orderedBlocks()) {
-    std::unordered_set<Value> live = lvapass.getBlockSets(proc, block).out;
-
-    for (auto it = block.instructions.rbegin(); it != block.instructions.rend();
-         it++) {
-      Instruction inst = *it;
-
-      // skip deleted
-      if (inst.isDeleted())
-        continue;
-
-      // lvalue interferes with anything in live
-      if (inst.operation.lvalues.size() == 1 and
-          inst.operation.lvalues.front().getType() == Value::Type::virtualReg) {
-
-        Value lval = inst.operation.lvalues.front();
-        LiveRange lvalLiveRange = lrpass.getRangeWithValue(lval, set);
-
-        for (auto value : live) {
-          connectNodes(lrpass.getRangeWithValue(value, set).name,
-                       lvalLiveRange.name);
-        }
-
-        live.erase(lval);
-      }
-
-      // add rvalues to live
-      for (auto rval : inst.operation.rvalues) {
-        if (rval.getType() == Value::Type::virtualReg) {
-          live.insert(rval);
-        }
-      }
-    }
-  }
-
-  // record number of uses for spill costs
-  for (auto &pair : _graphMap) {
-    InterferenceGraphNode &node = pair.second;
-    LiveRange lr = lrpass.getRangeWithName(node.name, set);
-
-    // get number of uses for live range
-    unsigned int uses = 0;
-    for (auto val : lr.registers) {
-      if (proc.getSSAInfo().usesMap.find(val) !=
-          proc.getSSAInfo().usesMap.end()) {
-        uses += proc.getSSAInfo().usesMap.at(val).size();
-      } else {
-        // no uses. can happen with special registers.
-      }
-    }
-
-    node.uses = uses;
-  }
-}
-
 void InterferenceGraph::addNode(InterferenceGraphNode node) {
   if (_graphMap.find(node.name) != _graphMap.end()) {
     throw "tried to add a node that was already in the graph.\n";
@@ -160,9 +91,6 @@ bool InterferenceGraph::colorNode(InterferenceGraphNode nodeCopy,
       InterferenceGraphColor::vr3,
   };
 
-  max -= 1; // passed in as "number of available registers", but register colors
-            // start at 0
-
   InterferenceGraphNode &node = _graphMap.at(nodeCopy.name);
 
   // handle special nodes
@@ -188,7 +116,7 @@ bool InterferenceGraph::colorNode(InterferenceGraphNode nodeCopy,
   // find lowest available color
   // start at 4 because colors 0-3 correspond to special registers and are never
   // available
-  for (unsigned int i = 4; i <= max; i++) {
+  for (unsigned int i = 4; i < max; i++) {
     InterferenceGraphColor color = static_cast<InterferenceGraphColor>(i);
 
     if (notAvailable.find(color) == notAvailable.end()) {

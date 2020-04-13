@@ -14,7 +14,7 @@ IlocProgram OptRenamePass::applyToProgram(IlocProgram prog) {
 
   throw "this pass is outdated and probably doesn't work any more.\n";
 
-  LiveVariableAnalysisPass LVApass;
+  LiveVariableAnalysisPass<SoftValueSet> LVApass;
   LVApass.applyToProgram(prog);
   DTreePass.applyToProgram(prog);
   PDTreePass.applyToProgram(prog);
@@ -31,7 +31,7 @@ IlocProgram OptRenamePass::applyToProgram(IlocProgram prog) {
 }
 
 void OptRenamePass::placePhiNodes(IlocProgram &prog, IlocProcedure &proc) {
-  LiveVariableAnalysisPass LVAPass;
+  LiveVariableAnalysisPass<SoftValueSet> LVAPass;
   LVAPass.applyToProgram(prog);
 
   // clear phi nodes (in case we're running a second time)
@@ -44,7 +44,7 @@ void OptRenamePass::placePhiNodes(IlocProgram &prog, IlocProcedure &proc) {
   for (auto var : proc.getAllVariableNames()) {
     std::set<BasicBlock> iterDomFront = iteratedDominanceFrontier(var, proc);
     for (auto block : iterDomFront) {
-      DataFlowSets sets = LVAPass.getBlockSets(proc, block);
+      DataFlowSets<SoftValueSet> sets = LVAPass.getBlockSets(proc, block);
       if (sets.in.find(var) != sets.in.end()) {
         PhiNode phi(var);
         for (auto pred : block.before) {

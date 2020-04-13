@@ -47,8 +47,9 @@ bool operator<(const InterferenceGraphNode &a, const InterferenceGraphNode &b);
 
 class InterferenceGraph {
 public:
+  template <typename SetType>
   void createFromLiveRanges(LiveRangesPass lrpass, IlocProcedure proc,
-                            LiveVariableAnalysisPass lvapass);
+                            LiveVariableAnalysisPass<SetType> lvapass);
 
   void addNode(InterferenceGraphNode node);
   InterferenceGraphNode getNode(std::string name);
@@ -68,3 +69,75 @@ public:
 private:
   std::map<std::string, InterferenceGraphNode> _graphMap;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename SetType>
+void InterferenceGraph::createFromLiveRanges(
+    LiveRangesPass lrpass, IlocProcedure proc,
+    LiveVariableAnalysisPass<SetType> lvapass) {
+
+  _graphMap.clear();
+
+  std::set<LiveRange> set = lrpass.getLiveRanges(proc);
+
+  // initialize nodes
+  for (auto lr : set) {
+    addNode(lr.name);
+  }
+
+  // connect nodes
+  for (auto block : proc.orderedBlocks()) {
+    std::unordered_set<Value> live = lvapass.getBlockSets(proc, block).out;
+
+    for (auto it = block.instructions.rbegin(); it != block.instructions.rend();
+         it++) {
+      Instruction inst = *it;
+
+      // skip deleted
+      if (inst.isDeleted())
+        continue;
+
+      // lvalue interferes with anything in live
+      if (inst.operation.lvalues.size() == 1 and
+          inst.operation.lvalues.front().getType() == Value::Type::virtualReg) {
+
+        Value lval = inst.operation.lvalues.front();
+        LiveRange lvalLiveRange = lrpass.getRangeWithValue(lval, set);
+
+        for (auto value : live) {
+          connectNodes(lrpass.getRangeWithValue(value, set).name,
+                       lvalLiveRange.name);
+        }
+
+        live.erase(lval);
+      }
+
+      // add rvalues to live
+      for (auto rval : inst.operation.rvalues) {
+        if (rval.getType() == Value::Type::virtualReg) {
+          live.insert(rval);
+        }
+      }
+    }
+  }
+
+  // record number of uses for spill costs
+  for (auto &pair : _graphMap) {
+    InterferenceGraphNode &node = pair.second;
+    LiveRange lr = lrpass.getRangeWithName(node.name, set);
+
+    // get number of uses for live range
+    unsigned int uses = 0;
+    for (auto val : lr.registers) {
+      if (proc.getSSAInfo().usesMap.find(val) !=
+          proc.getSSAInfo().usesMap.end()) {
+        uses += proc.getSSAInfo().usesMap.at(val).size();
+      } else {
+        // no uses. can happen with special registers.
+      }
+    }
+
+    node.uses = uses;
+  }
+}

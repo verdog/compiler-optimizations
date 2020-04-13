@@ -8,8 +8,6 @@
 SSAPass::SSAPass() : PDTreePass(DominatorTreePass::Mode::postdominator) {}
 
 IlocProgram SSAPass::applyToProgram(IlocProgram prog) {
-  LiveVariableAnalysisPass LVApass;
-  LVApass.applyToProgram(prog);
   DTreePass.applyToProgram(prog);
   PDTreePass.applyToProgram(prog);
 
@@ -25,7 +23,7 @@ IlocProgram SSAPass::applyToProgram(IlocProgram prog) {
 }
 
 void SSAPass::placePhiNodes(IlocProgram &prog, IlocProcedure &proc) {
-  LiveVariableAnalysisPass LVAPass;
+  LiveVariableAnalysisPass<SoftValueSet> LVAPass;
   LVAPass.applyToProgram(prog);
 
   // clear phi nodes (in case we're running a second time)
@@ -38,7 +36,7 @@ void SSAPass::placePhiNodes(IlocProgram &prog, IlocProcedure &proc) {
   for (auto var : proc.getAllVariableNames()) {
     std::set<BasicBlock> iterDomFront = iteratedDominanceFrontier(var, proc);
     for (auto block : iterDomFront) {
-      DataFlowSets sets = LVAPass.getBlockSets(proc, block);
+      DataFlowSets<SoftValueSet> sets = LVAPass.getBlockSets(proc, block);
       if (sets.in.find(var) != sets.in.end()) {
         PhiNode phi(var);
         for (auto pred : block.before) {
@@ -133,13 +131,19 @@ void SSAPass::renameInit(IlocProcedure &proc) {
 void SSAPass::rename(BasicBlock &block, IlocProcedure &proc) {
   // define phi nodes
   for (auto phi : block.phinodes) {
-    Value newName = pushNewName(phi.getLValue());
+    if (phi.isDeleted() == true)
+      continue;
+
+    pushNewName(phi.getLValue());
   }
 
   startBlock();
 
   // rename rvalues and define lvalues
   for (auto &inst : block.instructions) {
+    if (inst.isDeleted() == true)
+      continue;
+
     for (auto &rvalue : inst.operation.rvalues) {
       if (rvalue.getType() == Value::Type::virtualReg) {
         rvalue = nameStackMap.at(rvalue.getName()).top();
@@ -180,6 +184,9 @@ void SSAPass::rename(BasicBlock &block, IlocProcedure &proc) {
   for (auto succName : block.after) {
     BasicBlock &successor = proc.getBlockReference(succName);
     for (auto &phi : successor.phinodes) {
+      if (phi.isDeleted() == true)
+        continue;
+
       phi.replaceRValue(block,
                         nameStackMap.at(phi.getLValue().getName()).top());
     }
@@ -219,6 +226,9 @@ void SSAPass::rename(BasicBlock &block, IlocProcedure &proc) {
 
   // rename phi nodes
   for (auto &phi : block.phinodes) {
+    if (phi.isDeleted() == true)
+      continue;
+
     phi.setLValue(popNameStack(phi.getLValue()));
   }
 }

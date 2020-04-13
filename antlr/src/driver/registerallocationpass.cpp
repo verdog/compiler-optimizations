@@ -3,30 +3,62 @@
 #include "interferencegraph.h"
 #include "liverangespass.h"
 #include "livevariableanalysispass.h"
+#include "ssapass.h"
 
 IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
-  LiveRangesPass lrpass;
-  prog = lrpass.applyToProgram(prog);
+  bool dirtyProg = true;
+  unsigned int iterations = 0;
 
-  LiveVariableAnalysisPass lvapass;
-  prog = lvapass.applyToProgram(prog);
+  // initialize dirty map
+  for (auto proc : prog.getProcedures()) {
+    _dirtyMap[proc.getFrame().name] = true;
+  }
 
   _offsetMap.clear();
 
-  for (auto &proc : prog.getProceduresReference()) {
-    InterferenceGraph igraph;
+  while (dirtyProg == true) {
+    dirtyProg = false;
+    iterations++;
 
-    // create interference graph
-    igraph.createFromLiveRanges(lrpass, proc, lvapass);
+    SSAPass ssapass;
+    prog = ssapass.applyToProgram(prog);
 
-    // process graph
-    colorGraph(igraph, 16);
+    LiveRangesPass lrpass;
+    prog = lrpass.applyToProgram(prog);
 
-    // spill
-    spillRegisters(proc, igraph, lrpass);
+    LiveVariableAnalysisPass<HardValueSet> lvapass;
+    prog = lvapass.applyToProgram(prog);
+    lvapass.dump();
 
-    igraph.dump();
+    for (auto &proc : prog.getProceduresReference()) {
+      if (_dirtyMap.at(proc.getFrame().name) == true) {
+        InterferenceGraph igraph;
+
+        // create interference graph
+        igraph.createFromLiveRanges(lrpass, proc, lvapass);
+
+        // process graph
+        colorGraph(igraph, 8);
+
+        igraph.dump();
+
+        // spill
+        bool dirtyProc = spillRegisters(proc, igraph, lrpass);
+
+        _dirtyMap.at(proc.getFrame().name) = dirtyProc;
+
+        if (dirtyProc == true) {
+          dirtyProg = true;
+        }
+      }
+    }
+
+    if (iterations == 2) {
+      dirtyProg = false;
+    }
   }
+
+  std::cerr << iterations << " register alloc iterations.\n";
 
   return prog;
 }
@@ -39,7 +71,7 @@ void RegisterAllocationPass::colorGraph(InterferenceGraph &igraph,
   while (igraph.empty() == false) {
     InterferenceGraphNode cheapestNode;
 
-    if (igraph.minDegree() < k) {
+    if (igraph.minDegree() < k - 4) {
       cheapestNode = igraph.getAnyNodeWithDegree(igraph.minDegree());
     } else {
       cheapestNode = igraph.getLowestSpillcostNode();
@@ -94,7 +126,7 @@ bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
         createStoreAIInst(lval, proc, newInstructions, instCopyPos);
 
         // we spilled, will have to do another iteration
-        spilled == true;
+        spilled = true;
       }
     }
 
@@ -127,7 +159,7 @@ bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
             createStoreAIInst(lval, proc, newInstructions, instCopyPos);
 
             // we spilled, will have to do another iteration
-            spilled == true;
+            spilled = true;
           }
         }
       }
@@ -155,7 +187,7 @@ bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
       // spill uses - load before use
       for (auto rval : inst.operation.rvalues) {
         if (rval.getType() == Value::Type::virtualReg) {
-          // lookup range lvalue is in
+          // lookup range rval is in
           LiveRange rvalRange = lrpass.getRangeWithValue(rval, rangesSet);
           InterferenceGraphNode node = igraph.getNode(rvalRange.name);
 
@@ -171,9 +203,6 @@ bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
 
             // create instruction
             createLoadAIInst(rval, proc, newInstructions, instCopyPos);
-
-            // we spilled, will have to do another iteration
-            spilled == true;
           }
         }
       }

@@ -19,4 +19,5 @@ private:
                         std::vector<Instruction>::iterator pos);
   std::unordered_map<std::string, std::unordered_map<Value, unsigned int>>
       _offsetMap;
+  std::unordered_map<std::string, bool> _dirtyMap;
 };
