@@ -8,23 +8,22 @@
 IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
   bool dirtyProg = true;
   unsigned int iterations = 0;
+  std::unordered_map<std::string, std::set<LiveRange>> spilledSetMap;
 
-  // initialize dirty map
+  // initialize dirty map and spilled map
   for (auto proc : prog.getProcedures()) {
     _dirtyMap[proc.getFrame().name] = true;
+    spilledSetMap.insert({proc.getFrame().name, {}});
   }
 
   _offsetMap.clear();
 
+  LiveRangesPass lrpass;
+  prog = lrpass.applyToProgram(prog);
+
   while (dirtyProg == true) {
     dirtyProg = false;
     iterations++;
-
-    SSAPass ssapass;
-    prog = ssapass.applyToProgram(prog);
-
-    LiveRangesPass lrpass;
-    prog = lrpass.applyToProgram(prog);
 
     LiveVariableAnalysisPass<HardValueSet> lvapass;
     prog = lvapass.applyToProgram(prog);
@@ -35,7 +34,8 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
         InterferenceGraph igraph;
 
         // create interference graph
-        igraph.createFromLiveRanges(lrpass, proc, lvapass);
+        igraph.createFromLiveRanges(lrpass, proc, lvapass,
+                                    spilledSetMap.at(proc.getFrame().name));
 
         // process graph
         colorGraph(igraph, 8);
@@ -43,7 +43,8 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
         igraph.dump();
 
         // spill
-        bool dirtyProc = spillRegisters(proc, igraph, lrpass);
+        bool dirtyProc = spillRegisters(proc, igraph, lrpass,
+                                        spilledSetMap.at(proc.getFrame().name));
 
         _dirtyMap.at(proc.getFrame().name) = dirtyProc;
 
@@ -51,10 +52,6 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
           dirtyProg = true;
         }
       }
-    }
-
-    if (iterations == 2) {
-      dirtyProg = false;
     }
   }
 
@@ -92,7 +89,8 @@ void RegisterAllocationPass::colorGraph(InterferenceGraph &igraph,
 
 bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
                                             InterferenceGraph &igraph,
-                                            LiveRangesPass lrpass) {
+                                            LiveRangesPass lrpass,
+                                            std::set<LiveRange> &spilledSet) {
 
   std::set<LiveRange> rangesSet = lrpass.getLiveRanges(proc);
   bool spilled = false;
@@ -103,32 +101,33 @@ bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
     // make a copy of the instructions so we can safely edit it while iterating
     std::vector<Instruction> newInstructions = block.instructions;
 
-    // check phi nodes
-    for (auto phi : block.phinodes) {
-      if (phi.isDeleted() == true)
-        continue;
+    // // check phi nodes
+    // for (auto phi : block.phinodes) {
+    //   if (phi.isDeleted() == true)
+    //     continue;
 
-      Value lval = phi.getLValue();
-      // lookup range lvalue is in
-      LiveRange lvalRange = lrpass.getRangeWithValue(lval, rangesSet);
-      InterferenceGraphNode node = igraph.getNode(lvalRange.name);
+    //   Value lval = phi.getLValue();
+    //   // lookup range lvalue is in
+    //   LiveRange lvalRange = lrpass.getRangeWithValue(lval, rangesSet);
+    //   InterferenceGraphNode node = igraph.getNode(lvalRange.name);
 
-      if (node.color == InterferenceGraphColor::uncolored) {
-        // spill here
-        auto instCopyPos = newInstructions.begin();
+    //   if (node.color == InterferenceGraphColor::uncolored) {
+    //     // spill here
+    //     auto instCopyPos = newInstructions.begin();
 
-        if ((*instCopyPos).label != "") {
-          // don't insert before a label
-          instCopyPos++;
-        }
+    //     if ((*instCopyPos).label != "") {
+    //       // don't insert before a label
+    //       instCopyPos++;
+    //     }
 
-        // create instruction
-        createStoreAIInst(lval, proc, newInstructions, instCopyPos);
+    //     // create instruction
+    //     createStoreAIInst(lval, lvalRange, proc, newInstructions,
+    //     instCopyPos);
 
-        // we spilled, will have to do another iteration
-        spilled = true;
-      }
-    }
+    //     // we spilled, will have to do another iteration
+    //     spilled = true;
+    //   }
+    // }
 
     for (auto inst : block.instructions) {
       if (inst.isDeleted() == true)
@@ -156,7 +155,11 @@ bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
             }
 
             // create instruction
-            createStoreAIInst(lval, proc, newInstructions, instCopyPos);
+            createStoreAIInst(lval, lvalRange, proc, newInstructions,
+                              instCopyPos);
+
+            // remember that we spilled
+            spilledSet.insert(lvalRange);
 
             // we spilled, will have to do another iteration
             spilled = true;
@@ -169,6 +172,7 @@ bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
     block.instructions = newInstructions;
   }
 
+  // load before use
   for (auto blockCopy : proc.orderedBlocks()) {
     BasicBlock &block = proc.getBlockReference(blockCopy.debugName);
 
@@ -202,7 +206,8 @@ bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
             }
 
             // create instruction
-            createLoadAIInst(rval, proc, newInstructions, instCopyPos);
+            createLoadAIInst(rval, rvalRange, proc, newInstructions,
+                             instCopyPos);
           }
         }
       }
@@ -216,24 +221,24 @@ bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
 }
 
 void RegisterAllocationPass::createStoreAIInst(
-    Value value, IlocProcedure &proc, std::vector<Instruction> &list,
-    std::vector<Instruction>::iterator pos) {
+    Value value, LiveRange lvalRange, IlocProcedure &proc,
+    std::vector<Instruction> &list, std::vector<Instruction>::iterator pos) {
 
   // see if we already have an offset for the value
-  std::unordered_map<Value, unsigned int> &offsetMap =
+  std::unordered_map<LiveRange, unsigned int> &offsetMap =
       _offsetMap[proc.getFrame().name];
 
   unsigned int offset;
-  if (offsetMap.find(value) == offsetMap.end()) {
+  if (offsetMap.find(lvalRange) == offsetMap.end()) {
     // not found
     offset = std::stoi(proc.getFrame().number) + 4;
-    offsetMap.insert({value, offset});
+    offsetMap.insert({lvalRange, offset});
 
     // update frame instruction
     proc.getFrameReference().number = std::to_string(offset);
   } else {
     // found
-    offset = offsetMap.at(value);
+    offset = offsetMap.at(lvalRange);
   }
 
   // create the storeai instruction
@@ -255,11 +260,11 @@ void RegisterAllocationPass::createStoreAIInst(
 }
 
 void RegisterAllocationPass::createLoadAIInst(
-    Value value, IlocProcedure &proc, std::vector<Instruction> &list,
-    std::vector<Instruction>::iterator pos) {
+    Value value, LiveRange valueRange, IlocProcedure &proc,
+    std::vector<Instruction> &list, std::vector<Instruction>::iterator pos) {
 
   // get offset
-  unsigned int offset = _offsetMap.at(proc.getFrame().name).at(value);
+  unsigned int offset = _offsetMap.at(proc.getFrame().name).at(valueRange);
 
   // create the loadai instruction
   Operation op(ilocParser::LOADAI);

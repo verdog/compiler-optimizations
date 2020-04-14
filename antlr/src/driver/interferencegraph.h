@@ -38,6 +38,7 @@ struct InterferenceGraphNode {
   unsigned int uses;
   std::set<InterferenceGraphNode> edges;
   InterferenceGraphColor color;
+  bool infiniteCost;
 };
 
 bool operator==(const InterferenceGraphNode &a, const InterferenceGraphNode &b);
@@ -49,7 +50,8 @@ class InterferenceGraph {
 public:
   template <typename SetType>
   void createFromLiveRanges(LiveRangesPass lrpass, IlocProcedure proc,
-                            LiveVariableAnalysisPass<SetType> lvapass);
+                            LiveVariableAnalysisPass<SetType> lvapass,
+                            std::set<LiveRange> infinites);
 
   void addNode(InterferenceGraphNode node);
   InterferenceGraphNode getNode(std::string name);
@@ -75,7 +77,7 @@ private:
 template <typename SetType>
 void InterferenceGraph::createFromLiveRanges(
     LiveRangesPass lrpass, IlocProcedure proc,
-    LiveVariableAnalysisPass<SetType> lvapass) {
+    LiveVariableAnalysisPass<SetType> lvapass, std::set<LiveRange> infinites) {
 
   _graphMap.clear();
 
@@ -139,5 +141,10 @@ void InterferenceGraph::createFromLiveRanges(
     }
 
     node.uses = uses;
+
+    // set infinites
+    if (infinites.find(lr) != infinites.end()) {
+      node.infiniteCost = true;
+    }
   }
 }

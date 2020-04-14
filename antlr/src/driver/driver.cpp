@@ -67,6 +67,9 @@ int main(int argc, const char *argv[]) {
   program = lvnpass.applyToProgram(program);
   program = ssapass.applyToProgram(program);
   program = deadcodepass.applyToProgram(program);
+
+  emitter.emitDebug(program);
+
   program = regallocpass.applyToProgram(program);
 
   emitter.emitDebug(program);

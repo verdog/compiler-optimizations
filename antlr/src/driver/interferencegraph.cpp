@@ -10,18 +10,19 @@ bool operator<(const InterferenceGraphNode &a, const InterferenceGraphNode &b) {
 }
 
 InterferenceGraphNode::InterferenceGraphNode()
-    : color(InterferenceGraphColor::uncolored), uses{0} {}
+    : color(InterferenceGraphColor::uncolored), uses{0}, infiniteCost{false} {}
 
 InterferenceGraphNode::InterferenceGraphNode(std::string _name)
-    : color(InterferenceGraphColor::uncolored), uses{0}, name{_name} {}
+    : color(InterferenceGraphColor::uncolored), uses{0},
+      infiniteCost{false}, name{_name} {}
 
 int InterferenceGraphNode::getDegree() { return edges.size(); }
 
 float InterferenceGraphNode::getSpillCost() {
-  if (getDegree() > 0) {
+  if (getDegree() > 0 and infiniteCost == false) {
     return static_cast<float>(uses) / static_cast<float>(getDegree());
   } else {
-    return 1000.0;
+    return 1000000.0;
   }
 }
 
@@ -273,7 +274,7 @@ InterferenceGraphNode InterferenceGraph::getLowestSpillcostNode() {
     if (first == true) {
       cheapestCost = pair.second.getSpillCost();
       cheap = pair.second;
-      first == false;
+      first = false;
     } else {
       if (pair.second.getSpillCost() < cheapestCost) {
         cheapestCost = pair.second.getSpillCost();
