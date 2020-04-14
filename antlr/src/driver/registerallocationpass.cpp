@@ -95,6 +95,35 @@ bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
   std::set<LiveRange> rangesSet = lrpass.getLiveRanges(proc);
   bool spilled = false;
 
+  // spill function arguments
+  BasicBlock &entryBlock = proc.getBlockReference("entry");
+
+  for (auto argValue : proc.getFrame().arguments) {
+    // lookup range value is in
+    LiveRange argRange = lrpass.getRangeWithValue(argValue, rangesSet);
+    InterferenceGraphNode node = igraph.getNode(argRange.name);
+
+    if (node.color == InterferenceGraphColor::uncolored) {
+      // spill here
+      // find instruction in question in the copied vector
+      auto instCopyPos = entryBlock.instructions.begin();
+
+      if (instCopyPos == entryBlock.instructions.end()) {
+        throw "didn't find the instruction...";
+      }
+
+      // create instruction
+      createStoreAIInst(argValue, argRange, proc, entryBlock.instructions,
+                        instCopyPos);
+
+      // remember that we spilled
+      spilledSet.insert(argRange);
+
+      // we spilled, will have to do another iteration
+      spilled = true;
+    }
+  }
+
   for (auto blockCopy : proc.orderedBlocks()) {
     BasicBlock &block = proc.getBlockReference(blockCopy.debugName);
 
