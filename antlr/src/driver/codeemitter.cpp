@@ -139,7 +139,8 @@ std::string CodeEmitter::debugText(const BasicBlock &bblock) const {
 
   bool haveEmittedPhi = false;
   bool canEmitPhi;
-  if (bblock.instructions.front().label != "") {
+  if (bblock.instructions.size() > 0 and
+      bblock.instructions.front().label != "") {
     canEmitPhi = false;
   } else {
     canEmitPhi = true;

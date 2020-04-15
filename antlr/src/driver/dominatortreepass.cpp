@@ -13,12 +13,12 @@ IlocProgram DominatorTreePass::applyToProgram(IlocProgram prog) {
     DominatorTree tree = buildTreeFromProcedure(proc);
 
     // debug output
-    // if (_mode == Mode::dominator) {
-    //   std::cerr << "Dominator tree: (" << proc.getFrame().name << ")\n";
-    // } else if (_mode == Mode::postdominator) {
-    //   std::cerr << "Postdominator tree: (" << proc.getFrame().name << ")\n";
-    // }
-    // tree.printPreorder();
+    if (_mode == Mode::dominator) {
+      std::cerr << "Dominator tree: (" << proc.getFrame().name << ")\n";
+    } else if (_mode == Mode::postdominator) {
+      std::cerr << "Postdominator tree: (" << proc.getFrame().name << ")\n";
+    }
+    tree.printPreorder();
 
     dominatorTreeMap.insert({proc, tree});
   }
@@ -115,12 +115,12 @@ DominatorTreePass::getDominatorsMap(IlocProcedure proc) {
   }
 
   // debug output
-  // for (auto block : proc.orderedBlocks()) {
-  //   std::cerr << "Dominators for " << block.debugName << std::endl;
-  //   for (auto dom : dominatorsMap.at(block)) {
-  //     std::cerr << "   " << dom.debugName << std::endl;
-  //   }
-  // }
+  for (auto block : proc.orderedBlocks()) {
+    std::cerr << "Dominators for " << block.debugName << std::endl;
+    for (auto dom : dominatorsMap.at(block)) {
+      std::cerr << "   " << dom.debugName << std::endl;
+    }
+  }
 
   return dominatorsMap;
 }

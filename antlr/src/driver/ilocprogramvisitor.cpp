@@ -145,33 +145,6 @@ IlocProgramVisitor::visitProcedure(ilocParser::ProcedureContext *ctx) {
 
   // std::cerr << "Created " << blocks.size() << " basic blocks." << std::endl;
 
-  // find the exit block
-  if (blocks.size() > 1) {
-    bool found_exit = false;
-    std::string oldName;
-    for (auto &pair : blocks) {
-      auto &block = pair.second;
-      if (block.instructions.back().operation.opcode == ilocParser::RET) {
-        // found an exit node
-        if (found_exit == true) {
-          // we already have an exit node?
-          throw "we already have an exit node?";
-        }
-
-        found_exit = true;
-
-        // set exit block
-        me.setExitBlockName(block.debugName);
-
-        // optimization: break after finding the exit block
-        // not doing this yet in case we find weird cases with multiple exit
-        // blocks
-
-        // break;
-      }
-    }
-  }
-
   // link up basic blocks by looking at our saved list
   for (auto pair : toLink) {
     // it's possible that some of the blocks saved in link pairs got deleted
@@ -179,6 +152,55 @@ IlocProgramVisitor::visitProcedure(ilocParser::ProcedureContext *ctx) {
         blocks.find(pair.second) != blocks.end()) {
       blocks.at(pair.first).after.push_back(pair.second);
       blocks.at(pair.second).before.push_back(pair.first);
+    }
+  }
+
+  // create exit block
+  BasicBlock exit("exit");
+
+  // find the exit points
+  for (auto &pair : blocks) {
+    auto &block = pair.second;
+    if (block.instructions.back().operation.opcode == ilocParser::RET ||
+        block.instructions.back().operation.opcode == ilocParser::IRET ||
+        block.instructions.back().operation.opcode == ilocParser::FRET) {
+
+      for (auto afterName : block.after) {
+        BasicBlock &afterBlock = blocks.at(afterName);
+        afterBlock.before.erase(std::find(afterBlock.before.begin(),
+                                          afterBlock.before.end(),
+                                          block.debugName));
+      }
+
+      block.after.clear();
+      block.after.push_back("exit");
+      exit.before.push_back(block.debugName);
+    }
+  }
+
+  // set exit block
+  me.setExitBlockName(exit.debugName);
+  blocks.insert({"exit", exit});
+
+  // remove unreachable blocks'
+  bool dirty = true;
+  while (dirty == true) {
+    dirty = false;
+
+    for (auto &pair : blocks) {
+      BasicBlock &block = pair.second;
+
+      if (block.debugName != "entry" and block.before.size() == 0) {
+        // no predecessors, unreachable.
+        for (auto afterName : block.after) {
+          BasicBlock &afterBlock = blocks.at(afterName);
+          afterBlock.before.erase(std::find(afterBlock.before.begin(),
+                                            afterBlock.before.end(),
+                                            block.debugName));
+        }
+        blocks.erase(block.debugName);
+        dirty = true;
+      }
     }
   }
 

@@ -125,10 +125,14 @@ bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
 
       // if we spill arguments, since they're passed by reference, we need to
       // re-load them before returning
-      createLoadAIInst(
-          argValue, argRange, proc,
-          proc.getBlockReference(proc.getExitBlockName()).instructions,
-          --proc.getBlockReference(proc.getExitBlockName()).instructions.end());
+      BasicBlock exitBlock = proc.getBlock(proc.getExitBlockName());
+
+      for (auto predBlockName : exitBlock.before) {
+        createLoadAIInst(
+            argValue, argRange, proc,
+            proc.getBlockReference(predBlockName).instructions,
+            --proc.getBlockReference(predBlockName).instructions.end());
+      }
 
       // remember that we spilled
       spilledSet.insert(argRange);
