@@ -124,6 +124,14 @@ void InterferenceGraph::createFromLiveRanges(
     }
   }
 
+  // arguments interfere with each other
+  for (auto argVal1 : proc.getFrame().arguments) {
+    for (auto argVal2 : proc.getFrame().arguments) {
+      connectNodes(lrpass.getRangeWithValue(argVal1, set).name,
+                   lrpass.getRangeWithValue(argVal2, set).name);
+    }
+  }
+
   // record number of uses for spill costs
   for (auto &pair : _graphMap) {
     InterferenceGraphNode &node = pair.second;

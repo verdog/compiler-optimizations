@@ -166,12 +166,12 @@ bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
             auto instCopyPos =
                 std::find(newInstructions.begin(), newInstructions.end(), inst);
 
-            // we need to insert after the instruction
-            instCopyPos++;
-
             if (instCopyPos == newInstructions.end()) {
               throw "didn't find the instruction...";
             }
+
+            // we need to insert after the instruction
+            instCopyPos++;
 
             // create instruction
             createStoreAIInst(lval, lvalRange, proc, newInstructions,
