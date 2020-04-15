@@ -39,6 +39,12 @@ std::string CodeEmitter::text(const Instruction &inst) const {
     return storeInstText(inst);
   }
 
+  if (inst.operation.opcode == ilocParser::CALL ||
+      inst.operation.opcode == ilocParser::ICALL ||
+      inst.operation.opcode == ilocParser::FCALL) {
+    return callInstText(inst);
+  }
+
   // show deleted
   if (inst.isDeleted() == true) {
     text += "(deleted)";
@@ -232,6 +238,44 @@ std::string CodeEmitter::storeInstText(const Instruction &inst) const {
       text += spacer + v.getName();
       spacer = ", ";
     }
+  }
+
+  return text;
+}
+
+std::string CodeEmitter::callInstText(const Instruction &inst) const {
+  // to the interpreter, the "lvalues" of a call instruction are implicit
+  // because of call by reference
+  std::string text = tab;
+
+  // show deleted
+  if (inst.isDeleted() == true) {
+    text += "(deleted)";
+  }
+
+  // vocabulary returns name with quotes, trim them
+  std::string opName = vocab.getDisplayName(inst.operation.opcode);
+  opName = opName.substr(1, opName.length() - 2);
+  text += opName;
+
+  std::string spacer = " ";
+
+  // show rvalues
+  for (int i = 0; i < inst.operation.rvalues.size(); i++) {
+    auto v = inst.operation.rvalues[i];
+    if (i == 0) {
+      text += spacer + v.getName();
+      spacer = ", ";
+    } else {
+      text += spacer + v.getName();
+    }
+  }
+
+  // if icall or fcall, print return value
+  if (inst.operation.opcode == ilocParser::ICALL ||
+      inst.operation.opcode == ilocParser::FCALL) {
+    text += " " + inst.operation.arrow + " " +
+            inst.operation.lvalues.front().getName();
   }
 
   return text;

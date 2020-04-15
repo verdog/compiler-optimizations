@@ -10,10 +10,11 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
   unsigned int iterations = 0;
   std::unordered_map<std::string, std::set<LiveRange>> spilledSetMap;
 
-  // initialize dirty map and spilled map
+  // initialize
   for (auto proc : prog.getProcedures()) {
     _dirtyMap[proc.getFrame().name] = true;
     spilledSetMap.insert({proc.getFrame().name, {}});
+    _graphMap.insert({proc.getFrame().name, InterferenceGraph()});
   }
 
   _offsetMap.clear();
@@ -31,7 +32,7 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
 
     for (auto &proc : prog.getProceduresReference()) {
       if (_dirtyMap.at(proc.getFrame().name) == true) {
-        InterferenceGraph igraph;
+        InterferenceGraph &igraph = _graphMap.at(proc.getFrame().name);
 
         // create interference graph
         igraph.createFromLiveRanges(lrpass, proc, lvapass,
@@ -53,6 +54,12 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
         }
       }
     }
+  }
+
+  // convert values to mapped colors
+  for (auto &proc : prog.getProceduresReference()) {
+    remapNames(proc, _graphMap.at(proc.getFrame().name),
+               lrpass.getLiveRanges(proc));
   }
 
   std::cerr << iterations << " register alloc iterations.\n";
@@ -112,9 +119,16 @@ bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
         throw "didn't find the instruction...";
       }
 
-      // create instruction
+      // create store instruction
       createStoreAIInst(argValue, argRange, proc, entryBlock.instructions,
                         instCopyPos);
+
+      // if we spill arguments, since they're passed by reference, we need to
+      // re-load them before returning
+      createLoadAIInst(
+          argValue, argRange, proc,
+          proc.getBlockReference(proc.getExitBlockName()).instructions,
+          --proc.getBlockReference(proc.getExitBlockName()).instructions.end());
 
       // remember that we spilled
       spilledSet.insert(argRange);
@@ -130,36 +144,12 @@ bool RegisterAllocationPass::spillRegisters(IlocProcedure &proc,
     // make a copy of the instructions so we can safely edit it while iterating
     std::vector<Instruction> newInstructions = block.instructions;
 
-    // // check phi nodes
-    // for (auto phi : block.phinodes) {
-    //   if (phi.isDeleted() == true)
-    //     continue;
-
-    //   Value lval = phi.getLValue();
-    //   // lookup range lvalue is in
-    //   LiveRange lvalRange = lrpass.getRangeWithValue(lval, rangesSet);
-    //   InterferenceGraphNode node = igraph.getNode(lvalRange.name);
-
-    //   if (node.color == InterferenceGraphColor::uncolored) {
-    //     // spill here
-    //     auto instCopyPos = newInstructions.begin();
-
-    //     if ((*instCopyPos).label != "") {
-    //       // don't insert before a label
-    //       instCopyPos++;
-    //     }
-
-    //     // create instruction
-    //     createStoreAIInst(lval, lvalRange, proc, newInstructions,
-    //     instCopyPos);
-
-    //     // we spilled, will have to do another iteration
-    //     spilled = true;
-    //   }
-    // }
-
     for (auto inst : block.instructions) {
       if (inst.isDeleted() == true)
+        continue;
+
+      // don't store immediately after a load
+      if (inst.operation.opcode == ilocParser::LOADAI)
         continue;
 
       // spill definitions - store after def
@@ -311,4 +301,52 @@ void RegisterAllocationPass::createLoadAIInst(
 
   // insert it
   list.insert(pos, Instruction(op));
+}
+
+void RegisterAllocationPass::remapNames(IlocProcedure &proc,
+                                        InterferenceGraph graph,
+                                        std::set<LiveRange> liveRanges) {
+  LiveRangesPass utilLRPass;
+
+  // map arguments
+  for (auto &arg : proc.getFrameReference().arguments) {
+    if (arg.getType() == Value::Type::virtualReg) {
+      LiveRange liveRange = utilLRPass.getRangeWithValue(arg, liveRanges);
+      InterferenceGraphNode node = graph.getNode(liveRange.name);
+
+      arg.setSubscript(arg.getFullText());
+      arg.setName("%vr" + std::to_string(node.color));
+    }
+  }
+
+  // map instructions
+  for (auto blockCopy : proc.orderedBlocks()) {
+    BasicBlock &block = proc.getBlockReference(blockCopy.debugName);
+
+    for (auto &inst : block.instructions) {
+      if (inst.isDeleted()) {
+        continue;
+      }
+
+      for (auto &lval : inst.operation.lvalues) {
+        if (lval.getType() == Value::Type::virtualReg) {
+          LiveRange liveRange = utilLRPass.getRangeWithValue(lval, liveRanges);
+          InterferenceGraphNode node = graph.getNode(liveRange.name);
+
+          lval.setSubscript(lval.getFullText());
+          lval.setName("%vr" + std::to_string(node.color));
+        }
+      }
+
+      for (auto &rval : inst.operation.rvalues) {
+        if (rval.getType() == Value::Type::virtualReg) {
+          LiveRange liveRange = utilLRPass.getRangeWithValue(rval, liveRanges);
+          InterferenceGraphNode node = graph.getNode(liveRange.name);
+
+          rval.setSubscript(rval.getFullText());
+          rval.setName("%vr" + std::to_string(node.color));
+        }
+      }
+    }
+  }
 }

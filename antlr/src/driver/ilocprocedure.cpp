@@ -1,7 +1,7 @@
 #include "ilocprocedure.h"
 
 bool operator==(const IlocProcedure &a, const IlocProcedure &b) {
-  return a.getFrame() == b.getFrame();
+  return a.getFrame().name == b.getFrame().name;
 };
 
 Frame IlocProcedure::getFrame() const { return frame; }

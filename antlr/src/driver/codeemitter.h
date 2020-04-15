@@ -22,6 +22,7 @@ public:
   std::string debugText(const Frame &frame) const;
 
   std::string storeInstText(const Instruction &inst) const;
+  std::string callInstText(const Instruction &inst) const;
 
 private:
   antlr4::dfa::Vocabulary vocab;

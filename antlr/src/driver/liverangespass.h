@@ -30,6 +30,8 @@ public:
 
 private:
   std::set<LiveRange> computeLiveRanges(IlocProcedure proc);
+  void mergeLiveRangesWithValues(Value to, Value from,
+                                 std::set<LiveRange> &set);
 
   std::unordered_map<IlocProcedure, std::set<LiveRange>> _rangesMap;
 };

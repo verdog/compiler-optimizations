@@ -18,8 +18,10 @@
 #include "ssapass.h"
 
 int usage(int argc, const char *argv[]) {
-  if (argc != 2) {
-    std::cerr << "Usage: ./driver <iloc_file>" << std::endl;
+  if (argc < 2) {
+    std::cerr << "Usage: ./driver <iloc_file> <passes: {l: lvn, s: "
+                 "ssa, d: dead code, r:reg alloc}>"
+              << std::endl;
     return 1;
   }
 
@@ -33,6 +35,12 @@ int main(int argc, const char *argv[]) {
   if (r != 0) {
     return r;
   }
+
+  std::string passes;
+  if (argc < 3)
+    passes = "lsdr";
+  else
+    passes = argv[2];
 
   // open the file
   std::ifstream filestream;
@@ -57,20 +65,34 @@ int main(int argc, const char *argv[]) {
   RegisterBehaviorPass regpass;
   LVNPass lvnpass;
   SSAPass ssapass;
-  OptRenamePass optpass;
-  RemoveDeletedPass remdelpass;
   DeadCodeEliminationPass deadcodepass;
-  NormalFormPass normpass;
   RegisterAllocationPass regallocpass;
 
   program = regpass.applyToProgram(program);
-  program = lvnpass.applyToProgram(program);
-  program = ssapass.applyToProgram(program);
-  program = deadcodepass.applyToProgram(program);
 
-  emitter.emitDebug(program);
+  for (auto chr : passes) {
+    switch (chr) {
+    case 'l':
+      program = lvnpass.applyToProgram(program);
+      break;
 
-  program = regallocpass.applyToProgram(program);
+    case 's':
+      program = ssapass.applyToProgram(program);
+      break;
+
+    case 'd':
+      program = deadcodepass.applyToProgram(program);
+      break;
+
+    case 'r':
+      emitter.emitDebug(program);
+      program = regallocpass.applyToProgram(program);
+      break;
+
+    default:
+      break;
+    }
+  }
 
   emitter.emitDebug(program);
   emitter.emit(program);

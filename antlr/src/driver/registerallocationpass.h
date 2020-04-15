@@ -17,7 +17,10 @@ private:
   void createLoadAIInst(Value value, LiveRange valueRange, IlocProcedure &proc,
                         std::vector<Instruction> &list,
                         std::vector<Instruction>::iterator pos);
+  void remapNames(IlocProcedure &proc, InterferenceGraph graph,
+                  std::set<LiveRange> liveRanges);
   std::unordered_map<std::string, std::unordered_map<LiveRange, unsigned int>>
       _offsetMap;
   std::unordered_map<std::string, bool> _dirtyMap;
+  std::unordered_map<std::string, InterferenceGraph> _graphMap;
 };

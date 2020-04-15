@@ -106,12 +106,24 @@ Value::Behavior Operation::generateBehavior() {
 void Operation::fixValues() {
   // if a store operation, the "lvalue" should really betreated like an rvalue,
   // since store does not store into %vrx, but MEMORY(%vrx)
-
   if (opcode == ilocParser::STORE || opcode == ilocParser::STOREAI ||
       opcode == ilocParser::STOREAO) {
     for (auto lval : lvalues) {
       lvalues.pop_back();
       rvalues.push_back(lval);
+    }
+  }
+
+  // since function calls are call by reference, function calls both use and
+  // define their arguments.
+  if (opcode == ilocParser::CALL || opcode == ilocParser::ICALL ||
+      opcode == ilocParser::FCALL) {
+    for (auto rval : rvalues) {
+      // the function name is considered to be an rvalue, we don't want to push
+      // that
+      if (rval.getType() == Value::Type::virtualReg) {
+        lvalues.push_back(rval);
+      }
     }
   }
 }

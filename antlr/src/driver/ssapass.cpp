@@ -151,10 +151,6 @@ void SSAPass::rename(BasicBlock &block, IlocProcedure &proc) {
     }
 
     if (inst.operation.category != Operation::Category::branch) {
-      if (inst.operation.lvalues.size() > 1) {
-        std::cerr << "Can't handle multiple lvalues in rename.\n";
-        throw "Can't handle multiple lvalues in rename.\n";
-      }
       if (inst.operation.lvalues.size() == 1) {
         Value lvalue = inst.operation.lvalues.front();
 
@@ -175,6 +171,12 @@ void SSAPass::rename(BasicBlock &block, IlocProcedure &proc) {
           // we haven't seen it, save it for later and push new name
           pushNewName(lvalue);
           recordSeen(lvalue, inst.operation);
+        }
+      } else {
+        // we have multiple lvalues, best we can do is record new definitions
+        // for each
+        for (auto lval : inst.operation.lvalues) {
+          pushNewName(lval);
         }
       }
     }
@@ -210,14 +212,9 @@ void SSAPass::rename(BasicBlock &block, IlocProcedure &proc) {
 
     if (inst.operation.category != Operation::Category::branch &&
         inst.operation.category != Operation::Category::nop) {
-      if (inst.operation.lvalues.size() > 1) {
-        std::cerr << "Can't handle multiple lvalues in rename.\n";
-        throw "Can't handle multiple lvalues in rename.\n";
-      }
-
-      if (inst.operation.lvalues.size() == 1) {
-        Value newValue = popNameStack(inst.operation.lvalues.front());
-        inst.operation.lvalues.front() = newValue;
+      for (auto &lval : inst.operation.lvalues) {
+        Value newValue = popNameStack(lval);
+        lval = newValue;
       }
     }
   }

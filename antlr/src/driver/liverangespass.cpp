@@ -59,39 +59,49 @@ std::set<LiveRange> LiveRangesPass::computeLiveRanges(IlocProcedure proc) {
     rangesSet.insert(LiveRange(pair.first));
   }
 
-  // create live ranges from phi nodes
   for (auto block : proc.orderedBlocks()) {
+    // merge live ranges at phi nodes
     for (auto phi : block.phinodes) {
       if (phi.isDeleted())
         continue;
 
-      // get live range associated with lvalue
-      LiveRange range = getRangeWithValue(phi.getLValue(), rangesSet);
-
-      // create a set of ranges that we will merge with the lvalue range
-      std::set<LiveRange> toMerge;
-
-      // save rvalues to merge set
+      // merge rvalue ranges
       for (auto pair : phi.getRValueMap()) {
         // add rvalue live range to merge set
         Value rval = pair.second;
-        LiveRange rvalRange = getRangeWithValue(rval, rangesSet);
-        toMerge.insert(rvalRange);
+        mergeLiveRangesWithValues(phi.getLValue(), rval, rangesSet);
+      }
+    }
+
+    // function calls merge the live ranges of their arguments with their
+    // corresponding lvalues because of call by reference
+    for (auto inst : block.instructions) {
+      if (inst.isDeleted()) {
+        continue;
       }
 
-      // erase ranges in toMerge from master set
-      for (auto mergingRange : toMerge) {
-        rangesSet.erase(mergingRange);
+      if (inst.operation.opcode == ilocParser::CALL ||
+          inst.operation.opcode == ilocParser::ICALL ||
+          inst.operation.opcode == ilocParser::FCALL) {
+
+        int lValueIndex = 0;
+        if (inst.operation.opcode == ilocParser::ICALL ||
+            inst.operation.opcode == ilocParser::FCALL) {
+          // functions with return values have one extra lvalue
+          lValueIndex++;
+        }
+
+        // merge arguments with their definitions
+        for (auto rval : inst.operation.rvalues) {
+          // skip the function name
+          if (rval.getType() == Value::Type::label)
+            continue;
+
+          mergeLiveRangesWithValues(rval, inst.operation.lvalues[lValueIndex],
+                                    rangesSet);
+          lValueIndex++;
+        }
       }
-
-      // remove range before modification
-      rangesSet.erase(range);
-
-      // merge
-      range.assimilateRanges(toMerge);
-
-      // save
-      rangesSet.insert(range);
     }
   }
 
@@ -128,4 +138,31 @@ LiveRange LiveRangesPass::getRangeWithName(std::string name,
     }
     return false;
   });
+}
+
+void LiveRangesPass::mergeLiveRangesWithValues(Value to, Value from,
+                                               std::set<LiveRange> &set) {
+  // get live range associated with lvalue
+  LiveRange toRange = getRangeWithValue(to, set);
+
+  // create a set of ranges that we will merge with the lvalue range
+  std::set<LiveRange> toMerge;
+
+  // save rvalues to merge set
+  LiveRange fromRange = getRangeWithValue(from, set);
+  toMerge.insert(fromRange);
+
+  // erase ranges in toMerge from master set
+  for (auto mergingRange : toMerge) {
+    set.erase(mergingRange);
+  }
+
+  // remove range before modification
+  set.erase(toRange);
+
+  // merge
+  toRange.assimilateRanges(toMerge);
+
+  // save
+  set.insert(toRange);
 }

@@ -100,19 +100,19 @@ void InterferenceGraph::createFromLiveRanges(
       if (inst.isDeleted())
         continue;
 
-      // lvalue interferes with anything in live
-      if (inst.operation.lvalues.size() == 1 and
-          inst.operation.lvalues.front().getType() == Value::Type::virtualReg) {
+      // lvalues interfere with anything in live
+      for (auto lval : inst.operation.lvalues) {
+        if (lval.getType() == Value::Type::virtualReg) {
 
-        Value lval = inst.operation.lvalues.front();
-        LiveRange lvalLiveRange = lrpass.getRangeWithValue(lval, set);
+          LiveRange lvalLiveRange = lrpass.getRangeWithValue(lval, set);
 
-        for (auto value : live) {
-          connectNodes(lrpass.getRangeWithValue(value, set).name,
-                       lvalLiveRange.name);
+          for (auto value : live) {
+            connectNodes(lrpass.getRangeWithValue(value, set).name,
+                         lvalLiveRange.name);
+          }
+
+          live.erase(lval);
         }
-
-        live.erase(lval);
       }
 
       // add rvalues to live

@@ -62,8 +62,7 @@ void UsesAndDefinitionsPass::calculateSSAInfo(IlocProcedure &proc) {
       }
 
       // definitions
-      if (inst.operation.lvalues.size() > 0) {
-        Value lval = inst.operation.lvalues.front();
+      for (auto lval : inst.operation.lvalues) {
         if (lval.getType() == Value::Type::virtualReg) {
           if (defMap.find(lval) == defMap.end()) {
             defMap.insert({lval, std::make_shared<InstructionValueOccurance>(
