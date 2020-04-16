@@ -39,7 +39,7 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
                                     spilledSetMap.at(proc.getFrame().name));
 
         // process graph
-        colorGraph(igraph, 8);
+        colorGraph(igraph, 12);
 
         igraph.dump();
 
