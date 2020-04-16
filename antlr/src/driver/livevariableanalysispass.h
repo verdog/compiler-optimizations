@@ -184,7 +184,7 @@ void LiveVariableAnalysisPass<SetType>::computeSets(IlocProcedure proc,
     }
   }
 
-  // since iloc is pass be reference, we need to assume that function arguments
+  // since iloc is pass by reference, we need to assume that function arguments
   // are always live (could be used outside of the function)
   for (auto arg : proc.getFrame().arguments) {
     _setsMap[proc][block].out.insert(arg);

@@ -103,7 +103,6 @@ void InterferenceGraph::createFromLiveRanges(
       // lvalues interfere with anything in live
       for (auto lval : inst.operation.lvalues) {
         if (lval.getType() == Value::Type::virtualReg) {
-
           LiveRange lvalLiveRange = lrpass.getRangeWithValue(lval, set);
 
           for (auto value : live) {

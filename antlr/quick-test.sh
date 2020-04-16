@@ -23,7 +23,7 @@ run_on_file() {
     java -jar ../iloc.jar -s output.il > optimized.txt
   fi
 
-  if diff -ud original.txt optimized.txt ; then
+  if diff original.txt optimized.txt ; then
     echo "(No difference)"
   fi
 }
