@@ -92,6 +92,18 @@ void InterferenceGraph::createFromLiveRanges(
   for (auto block : proc.orderedBlocks()) {
     std::unordered_set<Value> live = lvapass.getBlockSets(proc, block).out;
 
+    // special case: if arguments haven't been spilled, they are always live
+    // because of call by reference.
+    // spilling them will preserve their call by reference properties by loading
+    // them back into their registers before a return, so if they have been
+    // spilled, we don't have to consider them live in register allocation.
+    for (auto argValue : proc.getFrame().arguments) {
+      LiveRange argLiveRange = lrpass.getRangeWithValue(argValue, set);
+      if (infinites.find(argLiveRange) == infinites.end()) {
+        live.insert(argValue);
+      }
+    }
+
     for (auto it = block.instructions.rbegin(); it != block.instructions.rend();
          it++) {
       Instruction inst = *it;

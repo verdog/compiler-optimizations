@@ -2,13 +2,13 @@ running on ../input/arrayparam.il
 21c21
 < Total Instructions Executed = 841
 ---
-> Total Instructions Executed = 485
+> Total Instructions Executed = 528
 
 running on ../input/bubble.il
 16c16
 < Total Instructions Executed = 4374
 ---
-> Total Instructions Executed = 3824
+> Total Instructions Executed = 3895
 
 running on ../input/check.il
 2c2
@@ -26,25 +26,25 @@ running on ../input/dynamic.il
 2c2
 < Total Instructions Executed = 39155
 ---
-> Total Instructions Executed = 27822
+> Total Instructions Executed = 31749
 
 running on ../input/fib.il
 21c21
 < Total Instructions Executed = 274
 ---
-> Total Instructions Executed = 352
+> Total Instructions Executed = 537
 
 running on ../input/gcd.il
 2c2
 < Total Instructions Executed = 103
 ---
-> Total Instructions Executed = 84
+> Total Instructions Executed = 108
 
 running on ../input/newdyn.il
 2c2
 < Total Instructions Executed = 136919
 ---
-> Total Instructions Executed = 115848
+> Total Instructions Executed = 117812
 
 running on ../input/practice.il
 4c4
@@ -56,7 +56,7 @@ running on ../input/qs.il
 61c61
 < Total Instructions Executed = 4574
 ---
-> Total Instructions Executed = 4908
+> Total Instructions Executed = 4982
 
 running on ../input/slides.il
 1c1
@@ -68,5 +68,5 @@ running on ../input/while_array.il
 11c11
 < Total Instructions Executed = 377
 ---
-> Total Instructions Executed = 278
+> Total Instructions Executed = 339
 

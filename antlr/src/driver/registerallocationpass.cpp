@@ -39,8 +39,10 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
                                     spilledSetMap.at(proc.getFrame().name));
 
         // process graph
-        colorGraph(igraph, 12);
+        colorGraph(igraph, 8);
 
+        // debug output
+        std::cerr << "graph for " << proc.getFrame().name << ":\n";
         igraph.dump();
 
         // spill
