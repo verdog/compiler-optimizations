@@ -7,6 +7,7 @@ DeadCodeEliminationPass::DeadCodeEliminationPass()
     : PDTreePass(DominatorTreePass::Mode::postdominator) {}
 
 IlocProgram DeadCodeEliminationPass::applyToProgram(IlocProgram prog) {
+  std::cerr << "eliminating dead code\n";
   UsesAndDefinitionsPass ssaInfoPass;
   prog = ssaInfoPass.applyToProgram(prog);
   PDTreePass.applyToProgram(prog);

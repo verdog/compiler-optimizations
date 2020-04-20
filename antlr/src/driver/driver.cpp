@@ -85,7 +85,6 @@ int main(int argc, const char *argv[]) {
       break;
 
     case 'r':
-      emitter.emitDebug(program);
       program = regallocpass.applyToProgram(program);
       break;
 
@@ -94,7 +93,7 @@ int main(int argc, const char *argv[]) {
     }
   }
 
-  emitter.emitDebug(program);
+  // emitter.emitDebug(program);
   emitter.emit(program);
 
   return 0;

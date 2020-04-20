@@ -106,14 +106,14 @@ std::set<LiveRange> LiveRangesPass::computeLiveRanges(IlocProcedure proc) {
   }
 
   // debug output
-  for (auto lr : rangesSet) {
-    std::cerr << "found " << lr.name << std::endl;
-    std::cerr << "    ";
-    for (auto val : lr.registers) {
-      std::cerr << val.getFullText() << ", ";
-    }
-    std::cerr << std::endl;
-  }
+  // for (auto lr : rangesSet) {
+  //   std::cerr << "found " << lr.name << std::endl;
+  //   std::cerr << "    ";
+  //   for (auto val : lr.registers) {
+  //     std::cerr << val.getFullText() << ", ";
+  //   }
+  //   std::cerr << std::endl;
+  // }
 
   return rangesSet;
 }

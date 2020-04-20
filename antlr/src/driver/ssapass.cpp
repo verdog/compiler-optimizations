@@ -8,6 +8,9 @@
 SSAPass::SSAPass() : PDTreePass(DominatorTreePass::Mode::postdominator) {}
 
 IlocProgram SSAPass::applyToProgram(IlocProgram prog) {
+  std::cerr << "converting to ssa and doing global common subexpression "
+               "elimination\n";
+
   DTreePass.applyToProgram(prog);
   PDTreePass.applyToProgram(prog);
 

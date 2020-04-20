@@ -117,8 +117,8 @@ void InterferenceGraph::createFromLiveRanges(
         if (lval.getType() == Value::Type::virtualReg) {
           LiveRange lvalLiveRange = lrpass.getRangeWithValue(lval, set);
 
-          for (auto value : live) {
-            connectNodes(lrpass.getRangeWithValue(value, set).name,
+          for (auto liveValue : live) {
+            connectNodes(lrpass.getRangeWithValue(liveValue, set).name,
                          lvalLiveRange.name);
           }
 

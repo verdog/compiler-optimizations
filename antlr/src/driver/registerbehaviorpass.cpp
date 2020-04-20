@@ -3,6 +3,8 @@
 IlocProgram RegisterBehaviorPass::applyToProgram(IlocProgram prog) {
   _DTreePass.applyToProgram(prog);
 
+  std::cerr << "determining register behaviors\n";
+
   for (auto &proc : prog.getProceduresReference()) {
     _knownBehaviorMap.clear();
     setRegisterBehaviors(proc, proc.getBlockReference("entry"));

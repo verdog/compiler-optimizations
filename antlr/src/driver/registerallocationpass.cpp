@@ -10,6 +10,11 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
   unsigned int iterations = 0;
   std::unordered_map<std::string, std::set<LiveRange>> spilledSetMap;
 
+  int registers = 8;
+
+  std::cerr << "performing global register allocation with " << registers
+            << " registers\n";
+
   // initialize
   for (auto proc : prog.getProcedures()) {
     _dirtyMap[proc.getFrame().name] = true;
@@ -28,10 +33,13 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
 
     LiveVariableAnalysisPass<HardValueSet> lvapass;
     prog = lvapass.applyToProgram(prog);
-    lvapass.dump();
+    // lvapass.dump();
 
     for (auto &proc : prog.getProceduresReference()) {
       if (_dirtyMap.at(proc.getFrame().name) == true) {
+        std::cerr << "doing a graph coloring pass on " << proc.getFrame().name
+                  << "\n";
+
         InterferenceGraph &igraph = _graphMap.at(proc.getFrame().name);
 
         // create interference graph
@@ -39,11 +47,11 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
                                     spilledSetMap.at(proc.getFrame().name));
 
         // process graph
-        colorGraph(igraph, 6);
+        colorGraph(igraph, registers);
 
         // debug output
-        std::cerr << "graph for " << proc.getFrame().name << ":\n";
-        igraph.dump();
+        // std::cerr << "graph for " << proc.getFrame().name << ":\n";
+        // igraph.dump();
 
         // spill
         bool dirtyProc = spillRegisters(proc, igraph, lrpass,
@@ -64,7 +72,7 @@ IlocProgram RegisterAllocationPass::applyToProgram(IlocProgram prog) {
                lrpass.getLiveRanges(proc));
   }
 
-  std::cerr << iterations << " register alloc iterations.\n";
+  std::cerr << iterations << " register allocation iterations.\n";
 
   return prog;
 }

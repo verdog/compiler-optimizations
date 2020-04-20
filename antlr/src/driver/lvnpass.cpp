@@ -5,6 +5,8 @@
 IlocProgram LVNPass::applyToProgram(IlocProgram program) {
   IlocProgram optimizedProgram = program;
 
+  std::cerr << "performing local value numbering\n";
+
   optimizedProgram.clearProcedures();
 
   for (IlocProcedure proc : program.getProcedures()) {
