@@ -1,5 +1,8 @@
-# cs6810-iloc-global-register-allocator
+# cs6810-compiler-optimizations
 # Josh Chandler
+
+## Intro
+This is an optimizer created for cs 6810, compiler optimizations, and Western Michigan University. See below for the exact optimizations performed.
 
 ## Building
 
